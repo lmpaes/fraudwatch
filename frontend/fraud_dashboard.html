@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FraudWatch · Assistência Veicular</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0F1117;--card:#1A1D27;--border:#2C2F3E;--border-hover:#3C4058;
+  --red:#FF4C4C;--amber:#F5A623;--green:#00E676;--blue:#2979FF;
+  --txt:#F0F0F0;--muted:#9B9EAD;
+  --font-head:'Syne',sans-serif;--font-body:'DM Sans',sans-serif;
+}
+html,body{height:100%;background:var(--bg);color:var(--txt);font-family:var(--font-body);font-size:14px;line-height:1.5}
+button{cursor:pointer;font-family:var(--font-body)}
+
+/* TOPBAR */
+.topbar{
+  position:sticky;top:0;z-index:100;
+  background:#12151F;border-bottom:1px solid var(--border);
+  padding:0 40px;height:64px;
+  display:flex;align-items:center;justify-content:space-between;
+  gap:16px;
+}
+.topbar-brand{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.brand-icon{width:34px;height:34px;background:var(--red);border-radius:8px;display:flex;align-items:center;justify-content:center}
+.brand-icon i{font-size:17px;color:#fff}
+.brand-name{font-family:var(--font-head);font-size:16px;font-weight:700;letter-spacing:.02em;color:var(--txt)}
+.brand-sub{font-size:10px;color:var(--muted);margin-top:1px;letter-spacing:.03em}
+.topbar-nav{display:flex;gap:4px}
+.nav-btn{
+  background:none;border:none;color:var(--muted);
+  font-size:13px;font-weight:500;
+  padding:6px 14px;border-radius:7px;
+  display:flex;align-items:center;gap:6px;
+  transition:all .18s;
+}
+.nav-btn i{font-size:15px}
+.nav-btn:hover{color:var(--txt);background:var(--card)}
+.nav-btn.active{color:var(--txt);background:var(--border)}
+.topbar-right{display:flex;align-items:center;gap:14px}
+.live-badge{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--green);font-weight:500}
+.live-dot{width:7px;height:7px;background:var(--green);border-radius:50%;animation:pulse 1.8s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.4)}}
+.user-avatar{
+  width:34px;height:34px;
+  background:#2979FF18;border:1.5px solid #2979FF44;
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;color:var(--blue);
+}
+.timestamp{font-size:11px;color:var(--muted)}
+
+/* LAYOUT */
+.app-body{display:flex;min-height:calc(100vh - 64px)}
+.main-content{flex:1;min-width:0;padding:36px 40px;display:flex;flex-direction:column;gap:32px;transition:margin-right .3s}
+.main-content.sidebar-open{margin-right:400px}
+
+/* SIDEBAR */
+.sidebar{
+  position:fixed;top:64px;right:0;bottom:0;
+  width:400px;
+  background:#12151F;border-left:1px solid var(--border);
+  display:flex;flex-direction:column;
+  transform:translateX(100%);
+  transition:transform .28s cubic-bezier(.4,0,.2,1);
+  z-index:90;overflow-y:auto;
+}
+.sidebar.open{transform:translateX(0)}
+.sidebar-top{
+  padding:20px 24px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;background:#12151F;z-index:1;
+}
+.sidebar-title{font-family:var(--font-head);font-size:14px;font-weight:700;color:var(--txt)}
+.sidebar-close{
+  background:none;border:none;color:var(--muted);
+  font-size:18px;padding:3px;border-radius:5px;
+  display:flex;align-items:center;
+  transition:color .15s;
+}
+.sidebar-close:hover{color:var(--txt)}
+.sidebar-body{padding:24px;display:flex;flex-direction:column;gap:24px}
+.sb-section-label{
+  font-size:10px;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:14px;
+}
+.sb-score-big{
+  font-family:var(--font-head);font-size:52px;font-weight:800;line-height:1;
+}
+.sb-score-meta{font-size:12px;color:var(--muted);margin-top:5px}
+.score-bar-full{height:6px;background:var(--border);border-radius:3px;margin-top:12px;overflow:hidden}
+.score-fill-full{height:100%;border-radius:3px;transition:width .5s ease}
+.factors-list{display:flex;flex-direction:column;gap:8px}
+.factor-row{display:flex;align-items:center;justify-content:space-between;font-size:12px}
+.factor-name{color:var(--muted)}
+.factor-pts{font-weight:700;font-size:12px;padding:3px 8px;border-radius:5px;font-family:var(--font-head)}
+.factor-pts.on{background:#FF4C4C18;color:var(--red);border:1px solid #FF4C4C33}
+.factor-pts.off{background:var(--border);color:#555;border:1px solid transparent}
+.history-list{display:flex;flex-direction:column;gap:10px}
+.hist-item{
+  background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:12px 16px;font-size:12px;
+}
+.hist-date{color:var(--muted);font-size:11px;margin-bottom:4px}
+.hist-detail{color:var(--txt);font-weight:500}
+.justif-box{
+  background:var(--card);border:1px solid #FF4C4C33;border-radius:10px;
+  padding:16px 18px;font-size:12px;color:#FFB3B3;line-height:1.8;
+}
+.no-history{font-size:12px;color:var(--muted);font-style:italic}
+.client-badge-big{
+  display:flex;align-items:center;gap:12px;margin-bottom:4px;
+}
+.avatar-big{
+  width:42px;height:42px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:700;flex-shrink:0;
+}
+
+/* PAGE SECTIONS */
+.page{display:none;flex-direction:column;gap:28px}
+.page.active{display:flex}
+
+/* FILTERS ROW */
+.filters-row{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px}
+.section-head{}
+.section-title{font-family:var(--font-head);font-size:24px;font-weight:800;color:var(--txt);letter-spacing:-.01em}
+.section-sub{font-size:13px;color:var(--muted);margin-top:6px}
+.filter-tabs{
+  display:flex;background:var(--card);border:1px solid var(--border);
+  border-radius:9px;padding:3px;gap:3px;
+}
+.ftab{
+  background:none;border:none;color:var(--muted);
+  font-size:12px;font-weight:500;padding:6px 14px;border-radius:6px;
+  transition:all .18s;white-space:nowrap;
+}
+.ftab:hover:not(.active){color:var(--txt);background:var(--border)}
+.ftab.active{background:var(--blue);color:#fff;font-weight:600}
+
+/* KPI CARDS */
+.kpi-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px}
+.kpi-card{
+  background:var(--card);border:1px solid var(--border);border-radius:16px;
+  padding:28px 32px;position:relative;overflow:hidden;
+  transition:border-color .2s,transform .15s;
+}
+.kpi-card:hover{border-color:var(--border-hover);transform:translateY(-1px)}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:16px 16px 0 0}
+.kpi-card.c-blue::before{background:var(--blue)}
+.kpi-card.c-green::before{background:var(--green)}
+.kpi-card.c-amber::before{background:var(--amber)}
+.kpi-label{
+  font-size:10px;font-weight:700;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:16px;
+  display:flex;align-items:center;gap:6px;
+}
+.kpi-label i{font-size:14px}
+.kpi-value{font-family:var(--font-head);font-size:40px;font-weight:800;line-height:1;color:var(--txt)}
+.kpi-value.v-blue{color:var(--blue)}
+.kpi-value.v-green{color:var(--green)}
+.kpi-value.v-red{color:var(--red)}
+.kpi-value.v-amber{color:var(--amber)}
+.kpi-meta{font-size:11px;color:var(--muted);margin-top:8px}
+.kpi-divider{border:none;border-top:1px solid var(--border);margin:18px 0}
+.kpi-pair{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.kpi-half .kpi-sub-label{font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px}
+.kpi-half .kpi-sub-val{font-family:var(--font-head);font-size:26px;font-weight:700;line-height:1}
+.kpi-half .kpi-sub-meta{font-size:10px;color:var(--muted);margin-top:5px}
+.kpi-corner-icon{position:absolute;right:24px;top:24px;font-size:28px;opacity:.15}
+
+/* CHARTS */
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.chart-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:16px;padding:24px 28px;
+  transition:border-color .2s;
+}
+.chart-card:hover{border-color:var(--border-hover)}
+.chart-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.chart-title{
+  font-family:var(--font-head);font-size:13px;font-weight:700;
+  color:var(--txt);display:flex;align-items:center;gap:7px;
+}
+.chart-title i{font-size:16px;color:var(--blue)}
+.chart-legend{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:16px}
+.leg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)}
+.leg-dot{width:9px;height:9px;border-radius:2px;flex-shrink:0}
+
+/* TABLE */
+.table-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:16px;overflow:hidden;
+}
+.table-header{
+  padding:20px 28px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:8px;
+}
+.table-header-left{display:flex;align-items:center;gap:12px}
+.table-h-title{
+  font-family:var(--font-head);font-size:14px;font-weight:700;
+  display:flex;align-items:center;gap:7px;
+}
+.table-h-title i{font-size:16px;color:var(--blue)}
+.tbl-count{
+  font-size:11px;color:var(--muted);
+  background:var(--border);padding:4px 10px;border-radius:5px;font-weight:600;
+}
+.tbl-wrap{overflow-x:auto}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl thead th{
+  padding:12px 20px;text-align:left;
+  font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--muted);background:#13161F;border-bottom:1px solid var(--border);
+  white-space:nowrap;
+}
+.tbl tbody tr{
+  border-bottom:1px solid var(--border);
+  cursor:pointer;transition:background .14s;
+}
+.tbl tbody tr:last-child{border-bottom:none}
+.tbl tbody tr:hover{background:#1D2032}
+.tbl tbody tr.selected{background:#1C2540;border-left:2px solid var(--blue)}
+.tbl td{padding:14px 20px;color:var(--txt);vertical-align:middle;white-space:nowrap}
+.client-cell{display:flex;align-items:center;gap:10px}
+.c-init{
+  width:30px;height:30px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:700;flex-shrink:0;
+}
+.client-name{font-weight:500}
+.transport-badge,.status-badge{
+  font-size:10px;font-weight:700;padding:3px 9px;
+  border-radius:5px;text-transform:uppercase;letter-spacing:.05em;
+  white-space:nowrap;
+}
+.t-taxi{background:#2979FF18;color:#5B9BFF;border:1px solid #2979FF33}
+.t-road{background:#F5A62318;color:#F5C55A;border:1px solid #F5A62333}
+.t-air{background:#FF4C4C18;color:#FF7777;border:1px solid #FF4C4C33}
+.s-open{background:#2979FF18;color:#5B9BFF;border:1px solid #2979FF33}
+.s-denied{background:#FF4C4C18;color:#FF7777;border:1px solid #FF4C4C33}
+.s-released{background:#00E67618;color:#00E676;border:1px solid #00E67633}
+.score-cell{display:flex;align-items:center;gap:9px;min-width:90px}
+.score-bar-wrap{flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.score-fill{height:100%;border-radius:2px}
+.score-num{
+  font-family:var(--font-head);font-size:12px;font-weight:800;
+  min-width:22px;text-align:right;
+}
+.value-cell{font-weight:600;color:var(--amber)}
+
+/* BLOCK LIST */
+.bl-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:16px;overflow:hidden;
+}
+.bl-header{
+  padding:20px 28px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.bl-title{font-family:var(--font-head);font-size:14px;font-weight:700;display:flex;align-items:center;gap:7px}
+.bl-title i{font-size:16px;color:var(--red)}
+.bl-badge{
+  font-size:11px;font-weight:700;color:var(--red);
+  background:#FF4C4C18;border:1px solid #FF4C4C33;
+  padding:4px 12px;border-radius:5px;
+}
+.bl-row{
+  border-bottom:1px solid var(--border);padding:20px 28px;
+  display:grid;grid-template-columns:46px 1fr 1fr;
+  align-items:start;gap:20px;transition:background .14s;
+}
+.bl-row:last-child{border-bottom:none}
+.bl-row:hover{background:#1D2032}
+.bl-avatar{
+  width:46px;height:46px;border-radius:50%;
+  background:#FF4C4C18;border:1.5px solid #FF4C4C44;
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:800;color:var(--red);flex-shrink:0;
+}
+.bl-name{font-weight:600;font-size:14px;color:var(--txt);margin-bottom:5px}
+.bl-dob{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:4px}
+.bl-dob i{font-size:11px}
+.bl-reasons{display:flex;flex-direction:column;gap:6px}
+.bl-reason{
+  font-size:10px;background:#FF4C4C0E;border:1px solid #FF4C4C2A;
+  color:#FF8888;padding:4px 10px;border-radius:4px;
+  display:inline-block;max-width:fit-content;line-height:1.4;
+}
+
+/* ALERT */
+.alert-banner{
+  background:#FF4C4C12;border:1px solid #FF4C4C33;
+  border-radius:12px;padding:16px 20px;
+  display:flex;align-items:center;gap:14px;
+  font-size:13px;color:#FFB3B3;line-height:1.6;
+}
+.alert-banner i{font-size:20px;color:var(--red);flex-shrink:0}
+
+/* ACTION BUTTONS */
+.btn-primary{
+  background:var(--blue);color:#fff;border:none;
+  padding:8px 16px;border-radius:8px;font-size:12px;font-weight:600;
+  display:flex;align-items:center;gap:6px;transition:opacity .15s;
+}
+.btn-primary:hover{opacity:.85}
+.btn-danger{
+  background:#FF4C4C22;color:var(--red);border:1px solid #FF4C4C44;
+  padding:8px 16px;border-radius:8px;font-size:12px;font-weight:600;
+  display:flex;align-items:center;gap:6px;transition:all .15s;
+}
+.btn-danger:hover{background:#FF4C4C33}
+.btn-outline{
+  background:none;color:var(--muted);border:1px solid var(--border);
+  padding:7px 14px;border-radius:8px;font-size:12px;font-weight:500;
+  display:flex;align-items:center;gap:6px;transition:all .15s;
+}
+.btn-outline:hover{color:var(--txt);border-color:var(--border-hover)}
+.export-row{display:flex;gap:8px;flex-wrap:wrap}
+
+/* MODAL */
+.modal-overlay{
+  position:fixed;inset:0;background:#00000088;
+  z-index:200;display:flex;align-items:center;justify-content:center;
+  padding:24px;opacity:0;pointer-events:none;transition:opacity .2s;
+}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{
+  background:#1A1D27;border:1px solid var(--border);border-radius:18px;
+  width:100%;max-width:600px;max-height:90vh;overflow-y:auto;
+  transform:translateY(20px);transition:transform .2s;
+}
+.modal-overlay.open .modal{transform:translateY(0)}
+.modal-header{
+  padding:22px 28px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;background:#1A1D27;z-index:1;
+}
+.modal-title{font-family:var(--font-head);font-size:16px;font-weight:700}
+.modal-body{padding:28px;display:flex;flex-direction:column;gap:18px}
+.modal-footer{
+  padding:18px 28px;border-top:1px solid var(--border);
+  display:flex;justify-content:flex-end;gap:10px;
+  position:sticky;bottom:0;background:#1A1D27;
+}
+.form-row{display:grid;gap:14px}
+.form-row.cols-2{grid-template-columns:1fr 1fr}
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.form-input,.form-select,.form-textarea{
+  background:#13161F;border:1px solid var(--border);border-radius:8px;
+  color:var(--txt);font-family:var(--font-body);font-size:13px;
+  padding:9px 12px;outline:none;transition:border-color .15s;width:100%;
+}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--blue)}
+.form-select{appearance:none}
+.form-textarea{resize:vertical;min-height:80px}
+.factors-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* RESPONSIVE */
+@media(max-width:960px){
+  .kpi-row{grid-template-columns:1fr}
+  .charts-grid{grid-template-columns:1fr}
+  .bl-row{grid-template-columns:46px 1fr}
+  .main-content.sidebar-open{margin-right:0}
+  .main-content{padding:24px 20px}
+  .form-row.cols-2{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-brand">
+    <div class="brand-icon"><i class="ti ti-shield-exclamation"></i></div>
+    <div>
+      <div class="brand-name">FraudWatch</div>
+      <div class="brand-sub">Assistência Veicular · Prevenção a Fraudes</div>
+    </div>
+  </div>
+  <div class="topbar-nav">
+    <button class="nav-btn active" id="nav-dash" onclick="showPage('dash')">
+      <i class="ti ti-layout-dashboard"></i> Dashboard
+    </button>
+    <button class="nav-btn" id="nav-block" onclick="showPage('block')">
+      <i class="ti ti-ban"></i> Block List
+    </button>
+  </div>
+  <div class="topbar-right">
+    <span class="timestamp" id="ts-clock"></span>
+    <span class="live-badge"><span class="live-dot"></span>Ao vivo</span>
+    <div class="user-avatar">AN</div>
+  </div>
+</div>
+
+<div class="app-body">
+  <div class="main-content" id="main-content">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dash">
+
+      <div class="filters-row">
+        <div class="section-head">
+          <div class="section-title">Painel de Casos Suspeitos</div>
+          <div class="section-sub">Monitoramento de acionamentos com tratativa especial · sinistros ≥ 400 km da residência</div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <div class="filter-tabs">
+            <button class="ftab active" onclick="setFilter('all',this)">Todos os casos</button>
+            <button class="ftab" onclick="setFilter('week',this)">Semana atual</button>
+            <button class="ftab" onclick="setFilter('month',this)">Mês atual</button>
+          </div>
+          <button class="btn-primary" onclick="openCaseModal()">
+            <i class="ti ti-plus"></i> Novo caso
+          </button>
+        </div>
+      </div>
+
+      <!-- KPIs -->
+      <div class="kpi-row">
+        <div class="kpi-card c-blue">
+          <i class="ti ti-files kpi-corner-icon"></i>
+          <div class="kpi-label"><i class="ti ti-stack"></i> Volume de casos</div>
+          <div class="kpi-value v-blue" id="kpi-total">—</div>
+          <div class="kpi-meta" id="kpi-total-meta">—</div>
+        </div>
+        <div class="kpi-card c-green">
+          <i class="ti ti-clipboard-check kpi-corner-icon"></i>
+          <div class="kpi-label"><i class="ti ti-adjustments-check"></i> Resultado dos casos</div>
+          <div class="kpi-pair">
+            <div class="kpi-half">
+              <div class="kpi-sub-label">Liberados</div>
+              <div class="kpi-sub-val v-green" id="kpi-released">—</div>
+              <div class="kpi-sub-meta" id="kpi-released-pct"></div>
+            </div>
+            <div class="kpi-half">
+              <div class="kpi-sub-label">Negados</div>
+              <div class="kpi-sub-val v-red" id="kpi-denied">—</div>
+              <div class="kpi-sub-meta" id="kpi-denied-pct"></div>
+            </div>
+          </div>
+        </div>
+        <div class="kpi-card c-amber">
+          <i class="ti ti-currency-dollar kpi-corner-icon"></i>
+          <div class="kpi-label"><i class="ti ti-report-money"></i> Impacto financeiro</div>
+          <div class="kpi-pair">
+            <div class="kpi-half">
+              <div class="kpi-sub-label">Total exposto</div>
+              <div class="kpi-sub-val v-amber" id="kpi-exposed">—</div>
+              <div class="kpi-sub-meta">valor em risco</div>
+            </div>
+            <div class="kpi-half">
+              <div class="kpi-sub-label">Valor evitado</div>
+              <div class="kpi-sub-val v-green" id="kpi-saved">—</div>
+              <div class="kpi-sub-meta" id="kpi-saved-pct"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EXPORT -->
+      <div class="export-row">
+        <button class="btn-outline" onclick="exportData('cases','csv')"><i class="ti ti-download"></i> Casos CSV</button>
+        <button class="btn-outline" onclick="exportData('cases','json')"><i class="ti ti-download"></i> Casos JSON</button>
+      </div>
+
+      <!-- CHARTS -->
+      <div class="charts-grid">
+        <div class="chart-card">
+          <div class="chart-header">
+            <div class="chart-title"><i class="ti ti-chart-donut"></i> Distribuição por transporte</div>
+          </div>
+          <div class="chart-legend" id="leg-transport"></div>
+          <div style="position:relative;height:190px">
+            <canvas id="chartTransport"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-header">
+            <div class="chart-title"><i class="ti ti-chart-bar"></i> Casos por faixa de risco</div>
+          </div>
+          <div class="chart-legend" id="leg-risk"></div>
+          <div style="position:relative;height:190px">
+            <canvas id="chartRisk"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-header">
+            <div class="chart-title"><i class="ti ti-coins"></i> Valor médio por transporte</div>
+          </div>
+          <div style="position:relative;height:215px">
+            <canvas id="chartValue"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-header">
+            <div class="chart-title"><i class="ti ti-trending-up"></i> Timeline de acionamentos</div>
+          </div>
+          <div style="position:relative;height:215px">
+            <canvas id="chartTimeline"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- TABLE -->
+      <div class="table-card">
+        <div class="table-header">
+          <div class="table-header-left">
+            <div class="table-h-title"><i class="ti ti-table"></i> Lista de casos suspeitos</div>
+            <span class="tbl-count" id="tbl-count">—</span>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>Cliente</th>
+                <th>Motivo da suspeita</th>
+                <th>Tempo viagem</th>
+                <th>Transporte</th>
+                <th>Valor envolvido</th>
+                <th>Score de risco</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="tbl-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- BLOCK LIST -->
+    <div class="page" id="page-block">
+      <div class="filters-row">
+        <div class="section-head">
+          <div class="section-title">Block List</div>
+          <div class="section-sub">Clientes com fraude confirmada — novos acionamentos recebem alerta máximo automático</div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn-outline" onclick="exportData('blocklist','csv')"><i class="ti ti-download"></i> Exportar CSV</button>
+          <button class="btn-outline" onclick="exportData('blocklist','json')"><i class="ti ti-download"></i> Exportar JSON</button>
+          <button class="btn-danger" onclick="openBlocklistModal()"><i class="ti ti-ban"></i> Adicionar suspeito</button>
+        </div>
+      </div>
+      <div class="alert-banner">
+        <i class="ti ti-alert-triangle"></i>
+        Clientes desta lista iniciam qualquer novo caso com +45 pontos no score de risco (mínimo: Risco Médio). Acionamentos são sinalizados automaticamente para análise prioritária.
+      </div>
+      <div class="bl-card">
+        <div class="bl-header">
+          <div class="bl-title"><i class="ti ti-ban"></i> Clientes bloqueados</div>
+          <span class="bl-badge" id="bl-badge">—</span>
+        </div>
+        <div id="bl-body"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SIDEBAR DETAIL -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-top">
+      <div class="sidebar-title" id="sb-title">Detalhe do caso</div>
+      <button class="sidebar-close" onclick="closeSidebar()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="sidebar-body" id="sb-body"></div>
+  </div>
+</div>
+
+<!-- MODAL: Novo Caso -->
+<div class="modal-overlay" id="modal-case">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title"><i class="ti ti-plus" style="color:var(--blue);margin-right:8px"></i>Novo caso suspeito</div>
+      <button class="sidebar-close" onclick="closeCaseModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row cols-2">
+        <div class="form-group" style="grid-column:1/-1">
+          <label class="form-label">Nome completo</label>
+          <input class="form-input" id="f-name" type="text" placeholder="Nome do cliente">
+        </div>
+        <div class="form-group" style="grid-column:1/-1">
+          <label class="form-label">Motivo da suspeita</label>
+          <input class="form-input" id="f-suspicion" type="text" placeholder="Descreva o motivo">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Horas de viagem</label>
+          <input class="form-input" id="f-hours" type="number" step="0.5" placeholder="Ex: 14.5">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Valor envolvido (R$)</label>
+          <input class="form-input" id="f-value" type="number" step="0.01" placeholder="Ex: 2500.00">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Transporte</label>
+          <select class="form-select" id="f-transport">
+            <option value="taxi">Táxi</option>
+            <option value="road">Rodoviário</option>
+            <option value="air">Aéreo</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select class="form-select" id="f-status">
+            <option value="open">Em andamento</option>
+            <option value="denied">Negado</option>
+            <option value="released">Liberado</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Data do acionamento</label>
+          <input class="form-input" id="f-date" type="date">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Justificativa da suspeita</label>
+        <textarea class="form-textarea" id="f-justification" placeholder="Descreva a justificativa narrativa..."></textarea>
+      </div>
+      <div>
+        <div class="form-label" style="margin-bottom:10px">Fatores de risco</div>
+        <div class="factors-grid">
+          <div class="form-group">
+            <label class="form-label">Reincidência (0–25)</label>
+            <input class="form-input" id="f-reincidencia" type="number" min="0" max="25" value="0">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Data suspeita (0–10)</label>
+            <input class="form-input" id="f-data" type="number" min="0" max="10" value="0">
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:8px">
+          Block list e transporte são calculados automaticamente pelo sistema.
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeCaseModal()">Cancelar</button>
+      <button class="btn-primary" onclick="submitCase()"><i class="ti ti-check"></i> Criar caso</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Novo suspeito blocklist -->
+<div class="modal-overlay" id="modal-blocklist">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title"><i class="ti ti-ban" style="color:var(--red);margin-right:8px"></i>Adicionar à Block List</div>
+      <button class="sidebar-close" onclick="closeBlocklistModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row cols-2">
+        <div class="form-group" style="grid-column:1/-1">
+          <label class="form-label">Nome completo</label>
+          <input class="form-input" id="bl-name" type="text" placeholder="Nome do suspeito">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Data de nascimento</label>
+          <input class="form-input" id="bl-dob" type="date">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Motivos do bloqueio (um por linha)</label>
+        <textarea class="form-textarea" id="bl-reasons" placeholder="Sinistro proposital confirmado&#10;Reincidência comprovada" style="min-height:100px"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeBlocklistModal()">Cancelar</button>
+      <button class="btn-danger" onclick="submitBlocklist()"><i class="ti ti-ban"></i> Adicionar</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const API = 'http://localhost:8000';
+let currentFilter = 'all';
+let selectedId = null;
+const charts = {};
+
+// ── Clock ─────────────────────────────────────────────────────
+function updateClock(){
+  const now = new Date();
+  document.getElementById('ts-clock').textContent =
+    now.toLocaleDateString('pt-BR') + ' ' + now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+}
+updateClock();
+setInterval(updateClock, 30000);
+
+// ── Helpers ───────────────────────────────────────────────────
+function fmtBRL(v){ return 'R$ ' + Math.round(v).toLocaleString('pt-BR'); }
+function scoreColor(s){ return s>=56?'#FF4C4C':s>=26?'#F5A623':'#00E676'; }
+function scoreLabel(s){ return s>=56?'ALTO':s>=26?'MÉDIO':'BAIXO'; }
+function transportLabel(t){ return t==='taxi'?'Táxi':t==='road'?'Rodoviário':'Aéreo'; }
+function transportClass(t){ return t==='taxi'?'t-taxi':t==='road'?'t-road':'t-air'; }
+function statusLabel(s){ return s==='open'?'Em andamento':s==='denied'?'Negado':'Liberado'; }
+function statusClass(s){ return s==='open'?'s-open':s==='denied'?'s-denied':'s-released'; }
+
+// ── API fetch wrapper ─────────────────────────────────────────
+async function api(path, opts={}){
+  const res = await fetch(API + path, {
+    headers:{'Content-Type':'application/json'},
+    ...opts,
+  });
+  if(!res.ok) throw new Error(await res.text());
+  if(res.status === 204) return null;
+  return res.json();
+}
+
+// ── KPIs ──────────────────────────────────────────────────────
+async function loadKPIs(){
+  const data = await api(`/api/dashboard/kpis?filter=${currentFilter}`);
+  document.getElementById('kpi-total').textContent = data.total;
+  document.getElementById('kpi-total-meta').textContent =
+    `${data.open} em análise · ${data.denied} negados · ${data.released} liberados`;
+  document.getElementById('kpi-released').textContent = data.released;
+  document.getElementById('kpi-released-pct').textContent =
+    data.total ? Math.round(data.released/data.total*100)+'% do total' : '—';
+  document.getElementById('kpi-denied').textContent = data.denied;
+  document.getElementById('kpi-denied-pct').textContent =
+    data.total ? Math.round(data.denied/data.total*100)+'% do total' : '—';
+  document.getElementById('kpi-exposed').textContent = fmtBRL(data.total_value);
+  document.getElementById('kpi-saved').textContent = fmtBRL(data.saved_value);
+  document.getElementById('kpi-saved-pct').textContent = `${data.saved_pct}% evitado`;
+}
+
+// ── Table ─────────────────────────────────────────────────────
+async function loadTable(){
+  const cases = await api(`/api/cases?filter=${currentFilter}`);
+  document.getElementById('tbl-count').textContent = cases.length + ' casos';
+  document.getElementById('tbl-body').innerHTML = cases.map(c => {
+    const col = scoreColor(c.score);
+    return `<tr onclick="openDetail(${c.id})" id="row-${c.id}" class="${selectedId===c.id?'selected':''}">
+      <td>
+        <div class="client-cell">
+          <div class="c-init" style="background:${c.col}22;color:${c.col};border:1.5px solid ${c.col}44">${c.initials}</div>
+          <span class="client-name">${c.name}</span>
+        </div>
+      </td>
+      <td style="color:var(--muted);max-width:200px;font-size:12px">${c.suspicion}</td>
+      <td style="font-weight:600">${c.hours}h</td>
+      <td><span class="transport-badge ${transportClass(c.transport)}">${transportLabel(c.transport)}</span></td>
+      <td class="value-cell">${fmtBRL(c.value)}</td>
+      <td>
+        <div class="score-cell">
+          <div class="score-bar-wrap">
+            <div class="score-fill" style="width:${c.score}%;background:${col}"></div>
+          </div>
+          <span class="score-num" style="color:${col}">${c.score}</span>
+        </div>
+      </td>
+      <td><span class="status-badge ${statusClass(c.status)}">${statusLabel(c.status)}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Charts ────────────────────────────────────────────────────
+function destroyChart(id){ if(charts[id]){ charts[id].destroy(); delete charts[id]; } }
+
+async function loadCharts(){
+  const d = await api('/api/dashboard/charts');
+  const {transport, risk, avg_value, timeline} = d;
+
+  document.getElementById('leg-transport').innerHTML = [
+    ['#2979FF','Táxi',transport.taxi],
+    ['#F5A623','Rodoviário',transport.road],
+    ['#FF4C4C','Aéreo',transport.air],
+  ].map(([c,l,n])=>`<span class="leg-item"><span class="leg-dot" style="background:${c}"></span>${l} · ${n} caso${n!==1?'s':''}</span>`).join('');
+
+  document.getElementById('leg-risk').innerHTML = [
+    ['#00E676','Baixo (0–25)',risk.low],
+    ['#F5A623','Médio (26–55)',risk.medium],
+    ['#FF4C4C','Alto (56–100)',risk.high],
+  ].map(([c,l,n])=>`<span class="leg-item"><span class="leg-dot" style="background:${c}"></span>${l} · ${n}</span>`).join('');
+
+  destroyChart('transport');
+  charts['transport'] = new Chart(document.getElementById('chartTransport'),{
+    type:'doughnut',
+    data:{labels:['Táxi','Rodoviário','Aéreo'],datasets:[{
+      data:[transport.taxi,transport.road,transport.air],
+      backgroundColor:['#2979FF','#F5A623','#FF4C4C'],
+      borderColor:'#1A1D27',borderWidth:3,hoverOffset:8,
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'62%',
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.label+': '+ctx.raw+' casos'}}}}
+  });
+
+  destroyChart('risk');
+  charts['risk'] = new Chart(document.getElementById('chartRisk'),{
+    type:'bar',
+    data:{labels:['Baixo','Médio','Alto'],datasets:[{
+      data:[risk.low,risk.medium,risk.high],
+      backgroundColor:['#00E67628','#F5A62328','#FF4C4C28'],
+      borderColor:['#00E676','#F5A623','#FF4C4C'],
+      borderWidth:2,borderRadius:7,
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{ticks:{color:'#9B9EAD',font:{size:11,family:'DM Sans'}},grid:{color:'#2C2F3E'}},
+        y:{ticks:{color:'#9B9EAD',font:{size:11},stepSize:1},grid:{color:'#2C2F3E'},beginAtZero:true},
+      }}
+  });
+
+  destroyChart('value');
+  charts['value'] = new Chart(document.getElementById('chartValue'),{
+    type:'bar',
+    data:{labels:['Táxi','Rodoviário','Aéreo'],datasets:[{
+      data:[Math.round(avg_value.taxi),Math.round(avg_value.road),Math.round(avg_value.air)],
+      backgroundColor:['#2979FF28','#F5A62328','#FF4C4C28'],
+      borderColor:['#2979FF','#F5A623','#FF4C4C'],
+      borderWidth:2,borderRadius:7,
+    }]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' R$ '+Math.round(ctx.raw).toLocaleString('pt-BR')}}},
+      scales:{
+        x:{ticks:{color:'#9B9EAD',font:{size:11}},grid:{color:'#2C2F3E'}},
+        y:{ticks:{color:'#9B9EAD',font:{size:11},callback:v=>'R$'+Math.round(v/1000)+'k'},grid:{color:'#2C2F3E'},beginAtZero:true},
+      }}
+  });
+
+  destroyChart('timeline');
+  charts['timeline'] = new Chart(document.getElementById('chartTimeline'),{
+    type:'line',
+    data:{
+      labels: timeline.map(t=>t.week),
+      datasets:[{
+        label:'Acionamentos',
+        data: timeline.map(t=>t.count),
+        borderColor:'#2979FF',
+        backgroundColor:'#2979FF15',
+        fill:true,tension:.35,
+        pointRadius: timeline.map(t=>t.holiday?7:4),
+        pointBackgroundColor: timeline.map(t=>t.holiday?'#FF4C4C':'#2979FF'),
+        pointBorderColor:'#1A1D27',pointBorderWidth:2,
+      }],
+    },
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.raw+' acionamentos'}}},
+      scales:{
+        x:{ticks:{color:'#9B9EAD',font:{size:10},maxRotation:40,autoSkip:false},grid:{color:'#2C2F3E'}},
+        y:{ticks:{color:'#9B9EAD',font:{size:11}},grid:{color:'#2C2F3E'},beginAtZero:true},
+      }}
+  });
+}
+
+// ── Sidebar detail ────────────────────────────────────────────
+async function openDetail(id){
+  selectedId = id;
+  const c = await api(`/api/cases/${id}`);
+  const col = scoreColor(c.score);
+
+  document.getElementById('sb-title').textContent = c.name;
+
+  const factorMeta = {
+    blocklist:{label:'Block list',max:45},
+    reincidencia:{label:'Reincidência',max:25},
+    transporte:{label:'Meio de transporte',max:20},
+    data:{label:'Data suspeita',max:10},
+  };
+
+  const f = c.factors || {blocklist:0,reincidencia:0,transporte:0,data:0};
+  const histHtml = (c.history||[]).length
+    ? c.history.map(h=>`<div class="hist-item"><div class="hist-date">${h.d}</div><div class="hist-detail">${h.t}</div></div>`).join('')
+    : '<p class="no-history">Nenhum acionamento anterior registrado.</p>';
+
+  document.getElementById('sb-body').innerHTML = `
+    <div>
+      <div class="sb-section-label">Score de risco</div>
+      <div class="client-badge-big">
+        <div class="avatar-big" style="background:${c.col}22;color:${c.col};border:2px solid ${c.col}44">${c.initials}</div>
+        <div>
+          <div style="font-size:13px;font-weight:600">${c.name}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">${statusLabel(c.status)} · ${transportLabel(c.transport)}</div>
+        </div>
+      </div>
+      <div class="sb-score-big" style="color:${col}">${c.score}</div>
+      <div class="sb-score-meta">Risco <strong style="color:${col}">${scoreLabel(c.score)}</strong> · Máximo: 100 pontos</div>
+      <div class="score-bar-full"><div class="score-fill-full" style="width:${c.score}%;background:${col}"></div></div>
+    </div>
+    <div>
+      <div class="sb-section-label">Detalhamento do score</div>
+      <div class="factors-list">
+        ${Object.entries(factorMeta).map(([k,m])=>{
+          const v = f[k]||0;
+          return `<div class="factor-row">
+            <span class="factor-name">${m.label}</span>
+            <span class="factor-pts ${v>0?'on':'off'}">${v>0?'+'+v:'0'} / ${m.max}</span>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+    <div>
+      <div class="sb-section-label">Histórico de acionamentos</div>
+      <div class="history-list">${histHtml}</div>
+    </div>
+    <div>
+      <div class="sb-section-label">Justificativa da suspeita</div>
+      <div class="justif-box">${c.justification||'Sem justificativa registrada.'}</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn-outline" style="flex:1" onclick="patchStatus(${c.id},'released')"><i class="ti ti-check"></i> Liberar</button>
+      <button class="btn-danger" style="flex:1" onclick="patchStatus(${c.id},'denied')"><i class="ti ti-x"></i> Negar</button>
+    </div>`;
+
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('main-content').classList.add('sidebar-open');
+  document.querySelectorAll('.tbl tbody tr').forEach(r=>r.classList.remove('selected'));
+  const row = document.getElementById('row-'+id);
+  if(row) row.classList.add('selected');
+}
+
+async function patchStatus(id, status){
+  await api(`/api/cases/${id}/status`,{method:'PATCH',body:JSON.stringify({status})});
+  closeSidebar();
+  await refreshDashboard();
+}
+
+function closeSidebar(){
+  selectedId = null;
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('main-content').classList.remove('sidebar-open');
+  document.querySelectorAll('.tbl tbody tr').forEach(r=>r.classList.remove('selected'));
+}
+
+// ── Filter ────────────────────────────────────────────────────
+async function setFilter(f, btn){
+  currentFilter = f;
+  document.querySelectorAll('.ftab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  await Promise.all([loadKPIs(), loadTable()]);
+}
+
+// ── Pages ─────────────────────────────────────────────────────
+function showPage(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.getElementById('nav-'+page).classList.add('active');
+  closeSidebar();
+  if(page==='block') loadBlockList();
+}
+
+async function loadBlockList(){
+  const entries = await api('/api/blocklist');
+  document.getElementById('bl-badge').textContent = entries.length + ' clientes';
+  document.getElementById('bl-body').innerHTML = entries.map(b=>`
+    <div class="bl-row">
+      <div class="bl-avatar">${b.initials}</div>
+      <div>
+        <div class="bl-name">${b.name}</div>
+        <div class="bl-dob"><i class="ti ti-calendar"></i>${b.dob}</div>
+      </div>
+      <div class="bl-reasons">
+        ${b.reasons.map(r=>`<span class="bl-reason">${r.reason}</span>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+// ── Export ────────────────────────────────────────────────────
+function exportData(entity, format){
+  window.open(`${API}/api/export/${entity}/${format}`, '_blank');
+}
+
+// ── Modals ────────────────────────────────────────────────────
+function openCaseModal(){
+  document.getElementById('modal-case').classList.add('open');
+  document.getElementById('f-date').value = new Date().toISOString().slice(0,10);
+}
+function closeCaseModal(){
+  document.getElementById('modal-case').classList.remove('open');
+}
+function openBlocklistModal(){
+  document.getElementById('modal-blocklist').classList.add('open');
+}
+function closeBlocklistModal(){
+  document.getElementById('modal-blocklist').classList.remove('open');
+}
+
+async function submitCase(){
+  const name = document.getElementById('f-name').value.trim();
+  const suspicion = document.getElementById('f-suspicion').value.trim();
+  const hours = parseFloat(document.getElementById('f-hours').value);
+  const value = parseFloat(document.getElementById('f-value').value);
+  const transport = document.getElementById('f-transport').value;
+  const status = document.getElementById('f-status').value;
+  const date = document.getElementById('f-date').value;
+  const justification = document.getElementById('f-justification').value.trim();
+  const reincidencia = parseInt(document.getElementById('f-reincidencia').value)||0;
+  const dataFactor = parseInt(document.getElementById('f-data').value)||0;
+
+  if(!name||!suspicion||!hours||!value||!date){
+    alert('Preencha todos os campos obrigatórios.');
+    return;
+  }
+
+  try {
+    await api('/api/cases',{
+      method:'POST',
+      body: JSON.stringify({
+        name, suspicion, hours, value, transport, status, date, justification,
+        factors:{blocklist:0, reincidencia, transporte:0, data:dataFactor},
+        history:[],
+      }),
+    });
+    closeCaseModal();
+    document.getElementById('f-name').value='';
+    document.getElementById('f-suspicion').value='';
+    document.getElementById('f-hours').value='';
+    document.getElementById('f-value').value='';
+    document.getElementById('f-justification').value='';
+    document.getElementById('f-reincidencia').value='0';
+    document.getElementById('f-data').value='0';
+    await refreshDashboard();
+  } catch(e){
+    alert('Erro ao criar caso: ' + e.message);
+  }
+}
+
+async function submitBlocklist(){
+  const name = document.getElementById('bl-name').value.trim();
+  const dob = document.getElementById('bl-dob').value;
+  const reasons = document.getElementById('bl-reasons').value
+    .split('\n').map(r=>r.trim()).filter(Boolean);
+
+  if(!name||!dob){
+    alert('Preencha nome e data de nascimento.');
+    return;
+  }
+
+  try {
+    await api('/api/blocklist',{
+      method:'POST',
+      body: JSON.stringify({name, dob, reasons}),
+    });
+    closeBlocklistModal();
+    document.getElementById('bl-name').value='';
+    document.getElementById('bl-dob').value='';
+    document.getElementById('bl-reasons').value='';
+    await loadBlockList();
+  } catch(e){
+    alert('Erro ao adicionar suspeito: ' + e.message);
+  }
+}
+
+// ── Dashboard refresh ─────────────────────────────────────────
+async function refreshDashboard(){
+  await Promise.all([loadKPIs(), loadTable(), loadCharts()]);
+}
+
+// ── Init ──────────────────────────────────────────────────────
+(async function init(){
+  try {
+    await Promise.all([loadKPIs(), loadTable()]);
+    setTimeout(loadCharts, 150);
+  } catch(e){
+    console.error('Erro ao conectar na API:', e);
+    document.getElementById('kpi-total').textContent = 'Erro';
+    document.getElementById('kpi-total-meta').textContent = 'Verifique se o servidor está rodando em localhost:8000';
+  }
+})();
+</script>
+</body>
+</html>
