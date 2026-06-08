@@ -219,6 +219,12 @@ button{cursor:pointer;font-family:var(--font-body)}
   color:var(--muted);background:#13161F;border-bottom:1px solid var(--border);
   white-space:nowrap;
 }
+.tbl thead th.th-sort{cursor:pointer;user-select:none;transition:color .15s}
+.tbl thead th.th-sort:hover{color:var(--txt)}
+.tbl thead th.th-sort.sort-active{color:var(--blue)}
+.sort-arrow{display:inline-block;margin-left:4px;font-size:9px;width:9px}
+.sort-arrow.asc::after{content:'▲'}
+.sort-arrow.desc::after{content:'▼'}
 .tbl tbody tr{
   border-bottom:1px solid var(--border);
   cursor:pointer;transition:background .14s;
@@ -519,13 +525,14 @@ button{cursor:pointer;font-family:var(--font-body)}
           <table class="tbl">
             <thead>
               <tr>
-                <th>Cliente</th>
+                <th class="th-sort" data-sort="name" onclick="sortBy('name')">Cliente<span class="sort-arrow"></span></th>
                 <th>Motivo da suspeita</th>
-                <th>Tempo viagem</th>
-                <th>Transporte</th>
-                <th>Valor envolvido</th>
-                <th>Score de risco</th>
-                <th>Status</th>
+                <th class="th-sort" data-sort="date" onclick="sortBy('date')">Data<span class="sort-arrow"></span></th>
+                <th class="th-sort" data-sort="hours" onclick="sortBy('hours')">Tempo viagem<span class="sort-arrow"></span></th>
+                <th class="th-sort" data-sort="transport" onclick="sortBy('transport')">Transporte<span class="sort-arrow"></span></th>
+                <th class="th-sort" data-sort="value" onclick="sortBy('value')">Valor envolvido<span class="sort-arrow"></span></th>
+                <th class="th-sort" data-sort="score" onclick="sortBy('score')">Score de risco<span class="sort-arrow"></span></th>
+                <th class="th-sort" data-sort="status" onclick="sortBy('status')">Status<span class="sort-arrow"></span></th>
               </tr>
             </thead>
             <tbody id="tbl-body"></tbody>
@@ -583,27 +590,33 @@ button{cursor:pointer;font-family:var(--font-body)}
       <div class="form-row cols-2">
         <div class="form-group" style="grid-column:1/-1">
           <label class="form-label">Nome completo</label>
-          <input class="form-input" id="f-name" type="text" placeholder="Nome do cliente">
+          <input class="form-input" id="f-name" type="text" placeholder="Nome do cliente" oninput="onFormChange()">
         </div>
         <div class="form-group" style="grid-column:1/-1">
-          <label class="form-label">Motivo da suspeita</label>
-          <input class="form-input" id="f-suspicion" type="text" placeholder="Descreva o motivo">
+          <label class="form-label">Motivo da suspeita <span style="text-transform:none;letter-spacing:0;font-weight:400">(gerado automaticamente)</span></label>
+          <input class="form-input" id="f-suspicion" type="text" readonly style="opacity:.75;cursor:not-allowed" placeholder="Preenchido conforme os fatores de risco identificados">
         </div>
         <div class="form-group">
           <label class="form-label">Horas de viagem</label>
-          <input class="form-input" id="f-hours" type="number" step="0.5" placeholder="Ex: 14.5">
+          <input class="form-input" id="f-hours" type="number" step="0.5" placeholder="Ex: 14.5" oninput="onFormChange()">
         </div>
         <div class="form-group">
-          <label class="form-label">Valor envolvido (R$)</label>
-          <input class="form-input" id="f-value" type="number" step="0.01" placeholder="Ex: 2500.00">
+          <label class="form-label">Data do acionamento</label>
+          <input class="form-input" id="f-date" type="date" onchange="onFormChange()">
         </div>
         <div class="form-group">
-          <label class="form-label">Transporte</label>
-          <select class="form-select" id="f-transport">
-            <option value="taxi">Táxi</option>
-            <option value="road">Rodoviário</option>
-            <option value="air">Aéreo</option>
-          </select>
+          <label class="form-label">Transporte <span style="text-transform:none;letter-spacing:0;font-weight:400">(automático)</span></label>
+          <input class="form-input" id="f-transport-display" type="text" readonly style="opacity:.75;cursor:not-allowed">
+          <div style="font-size:11px;color:var(--muted)">
+            Definido pelo tempo de viagem: ≤8h Táxi · 8–15h Rodoviário · ≥15h Aéreo.
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Valor envolvido <span style="text-transform:none;letter-spacing:0;font-weight:400">(automático)</span></label>
+          <input class="form-input" id="f-value-display" type="text" readonly style="opacity:.75;cursor:not-allowed">
+          <div style="font-size:11px;color:var(--muted)">
+            horas × 80km/h × fator do transporte (Táxi 1,8 · Rodoviário 0,8 · Aéreo 2,0)
+          </div>
         </div>
         <div class="form-group">
           <label class="form-label">Status</label>
@@ -613,29 +626,31 @@ button{cursor:pointer;font-family:var(--font-body)}
             <option value="released">Liberado</option>
           </select>
         </div>
-        <div class="form-group">
-          <label class="form-label">Data do acionamento</label>
-          <input class="form-input" id="f-date" type="date">
-        </div>
       </div>
       <div class="form-group">
         <label class="form-label">Justificativa da suspeita</label>
         <textarea class="form-textarea" id="f-justification" placeholder="Descreva a justificativa narrativa..."></textarea>
       </div>
       <div>
-        <div class="form-label" style="margin-bottom:10px">Fatores de risco</div>
-        <div class="factors-grid">
-          <div class="form-group">
-            <label class="form-label">Reincidência (0–25)</label>
-            <input class="form-input" id="f-reincidencia" type="number" min="0" max="25" value="0">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Data suspeita (0–10)</label>
-            <input class="form-input" id="f-data" type="number" min="0" max="10" value="0">
-          </div>
+        <div class="form-label" style="margin-bottom:4px">Fatores de risco</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:10px">
+          Block list, reincidência, transporte e data suspeita são calculados automaticamente.
+          Selecione abaixo <strong>somente</strong> se identificar algum destes comportamentos —
+          e é <strong>obrigatório</strong> marcar ao menos uma opção quando nenhum fator automático pontuar.
         </div>
-        <div style="font-size:11px;color:var(--muted);margin-top:8px">
-          Block list e transporte são calculados automaticamente pelo sistema.
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <label style="display:flex;align-items:flex-start;gap:8px;font-size:12px;color:var(--txt);cursor:pointer">
+            <input type="checkbox" class="f-risk-factor" data-fator="reincidencia" data-pontos="15" onchange="onFormChange()" style="margin-top:2px">
+            Comportamento suspeito <span style="color:var(--muted)">(+15 reincidência)</span>
+          </label>
+          <label style="display:flex;align-items:flex-start;gap:8px;font-size:12px;color:var(--txt);cursor:pointer">
+            <input type="checkbox" class="f-risk-factor" data-fator="reincidencia" data-pontos="10" onchange="onFormChange()" style="margin-top:2px">
+            Mudança gratuita <span style="color:var(--muted)">(+10 reincidência)</span>
+          </label>
+          <label style="display:flex;align-items:flex-start;gap:8px;font-size:12px;color:var(--txt);cursor:pointer">
+            <input type="checkbox" class="f-risk-factor" data-fator="reincidencia" data-pontos="10" onchange="onFormChange()" style="margin-top:2px">
+            Exigências aérea <span style="color:var(--muted)">(+10 reincidência)</span>
+          </label>
         </div>
       </div>
     </div>
@@ -694,6 +709,14 @@ setInterval(updateClock, 30000);
 
 // ── Helpers ───────────────────────────────────────────────────
 function fmtBRL(v){ return 'R$ ' + Math.round(v).toLocaleString('pt-BR'); }
+function fmtDate(d){ const [y,m,day] = d.split('-'); return `${day}/${m}/${y}`; }
+// O motivo da suspeita pode reunir vários fatores separados por ' · ';
+// na lista mostramos apenas o de maior peso (o primeiro, pois onFormChange
+// já ordena por pontuação) e indicamos quantos outros existem.
+function suspicionSummary(suspicion){
+  const all = (suspicion||'').split(' · ').map(s=>s.trim()).filter(Boolean);
+  return { primary: all[0] || '—', extra: Math.max(all.length - 1, 0), full: all };
+}
 function scoreColor(s){ return s>=56?'#FF4C4C':s>=26?'#F5A623':'#00E676'; }
 function scoreLabel(s){ return s>=56?'ALTO':s>=26?'MÉDIO':'BAIXO'; }
 function transportLabel(t){ return t==='taxi'?'Táxi':t==='road'?'Rodoviário':'Aéreo'; }
@@ -730,11 +753,67 @@ async function loadKPIs(){
 }
 
 // ── Table ─────────────────────────────────────────────────────
+let currentCases = [];
+let sortField = null;
+let sortDir = 'asc';
+
+const SORT_VALUE_GETTERS = {
+  name: c => c.name.toLowerCase(),
+  date: c => c.date,
+  hours: c => c.hours,
+  transport: c => transportLabel(c.transport),
+  value: c => c.value,
+  score: c => c.score,
+  status: c => statusLabel(c.status),
+};
+
+function sortBy(field){
+  if(sortField === field){
+    sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+  } else {
+    sortField = field;
+    sortDir = 'asc';
+  }
+  renderTable();
+}
+
+function applySorting(cases){
+  if(!sortField) return cases;
+  const get = SORT_VALUE_GETTERS[sortField];
+  const sorted = [...cases].sort((a,b)=>{
+    const va = get(a), vb = get(b);
+    if(va < vb) return -1;
+    if(va > vb) return 1;
+    return 0;
+  });
+  if(sortDir === 'desc') sorted.reverse();
+  return sorted;
+}
+
+function updateSortIndicators(){
+  document.querySelectorAll('.tbl thead th.th-sort').forEach(th=>{
+    const arrow = th.querySelector('.sort-arrow');
+    arrow.className = 'sort-arrow';
+    th.classList.remove('sort-active');
+    if(th.dataset.sort === sortField){
+      th.classList.add('sort-active');
+      arrow.classList.add(sortDir);
+    }
+  });
+}
+
 async function loadTable(){
-  const cases = await api(`/api/cases?filter=${currentFilter}`);
+  currentCases = await api(`/api/cases?filter=${currentFilter}`);
+  renderTable();
+}
+
+function renderTable(){
+  const cases = applySorting(currentCases);
+  updateSortIndicators();
   document.getElementById('tbl-count').textContent = cases.length + ' casos';
   document.getElementById('tbl-body').innerHTML = cases.map(c => {
     const col = scoreColor(c.score);
+    const susp = suspicionSummary(c.suspicion);
     return `<tr onclick="openDetail(${c.id})" id="row-${c.id}" class="${selectedId===c.id?'selected':''}">
       <td>
         <div class="client-cell">
@@ -742,7 +821,8 @@ async function loadTable(){
           <span class="client-name">${c.name}</span>
         </div>
       </td>
-      <td style="color:var(--muted);max-width:200px;font-size:12px">${c.suspicion}</td>
+      <td style="color:var(--muted);max-width:200px;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${susp.full.join(' · ')}">${susp.primary}${susp.extra>0 ? ` <span style="opacity:.6">+${susp.extra}</span>` : ''}</td>
+      <td style="color:var(--muted);font-size:12px;white-space:nowrap">${fmtDate(c.date)}</td>
       <td style="font-weight:600">${c.hours}h</td>
       <td><span class="transport-badge ${transportClass(c.transport)}">${transportLabel(c.transport)}</span></td>
       <td class="value-cell">${fmtBRL(c.value)}</td>
@@ -763,7 +843,7 @@ async function loadTable(){
 function destroyChart(id){ if(charts[id]){ charts[id].destroy(); delete charts[id]; } }
 
 async function loadCharts(){
-  const d = await api('/api/dashboard/charts');
+  const d = await api(`/api/dashboard/charts?filter=${currentFilter}`);
   const {transport, risk, avg_value, timeline} = d;
 
   document.getElementById('leg-transport').innerHTML = [
@@ -896,6 +976,14 @@ async function openDetail(id){
       </div>
     </div>
     <div>
+      <div class="sb-section-label">Motivo da suspeita</div>
+      <div class="factors-list">
+        ${suspicionSummary(c.suspicion).full.map(s=>`<div class="factor-row">
+          <span class="factor-name">${s}</span>
+        </div>`).join('') || '<p class="no-history">Nenhum motivo registrado.</p>'}
+      </div>
+    </div>
+    <div>
       <div class="sb-section-label">Histórico de acionamentos</div>
       <div class="history-list">${histHtml}</div>
     </div>
@@ -933,7 +1021,7 @@ async function setFilter(f, btn){
   currentFilter = f;
   document.querySelectorAll('.ftab').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  await Promise.all([loadKPIs(), loadTable()]);
+  await Promise.all([loadKPIs(), loadTable(), loadCharts()]);
 }
 
 // ── Pages ─────────────────────────────────────────────────────
@@ -967,10 +1055,92 @@ function exportData(entity, format){
   window.open(`${API}/api/export/${entity}/${format}`, '_blank');
 }
 
+// ── Regras automáticas: transporte, valor, block list e data ──
+// (replica, no cliente, as mesmas regras de services/score.py para conseguir
+// pré-visualizar/validar os fatores de risco antes do envio)
+let blocklistNamesCache = null;
+
+function suggestTransport(hours){
+  if(hours <= 8) return 'taxi';
+  if(hours >= 15) return 'air';
+  return 'road';
+}
+const TRANSPORT_VALUE_FACTOR = {taxi:1.8, road:0.8, air:2.0};
+function calcValue(hours, transport){
+  const factor = TRANSPORT_VALUE_FACTOR[transport] || 0;
+  return hours * 80 * factor;
+}
+
+const NATIONAL_HOLIDAYS = new Set([
+  '1-1','4-21','5-1','9-7','10-12','11-2','11-15','12-25',
+  '4-18','4-19','3-4','3-5','4-3','4-5',
+].map(s=>s));
+function isNearHoliday(dateStr){
+  if(!dateStr) return false;
+  const d = new Date(dateStr+'T00:00:00');
+  for(let delta=-3; delta<=3; delta++){
+    const check = new Date(d);
+    check.setDate(check.getDate()+delta);
+    if(NATIONAL_HOLIDAYS.has(`${check.getMonth()+1}-${check.getDate()}`)) return true;
+  }
+  return false;
+}
+async function ensureBlocklistCache(){
+  if(blocklistNamesCache) return blocklistNamesCache;
+  try{
+    const entries = await api('/api/blocklist');
+    blocklistNamesCache = entries.map(e=>e.name.trim().toLowerCase());
+  } catch(e){ blocklistNamesCache = []; }
+  return blocklistNamesCache;
+}
+function isInBlocklist(name){
+  if(!blocklistNamesCache || !name) return false;
+  return blocklistNamesCache.includes(name.trim().toLowerCase());
+}
+
+// ── Recalcula campos automáticos + prévia do motivo da suspeita ─
+function onFormChange(){
+  const name = document.getElementById('f-name').value.trim();
+  const hours = parseFloat(document.getElementById('f-hours').value);
+  const dateStr = document.getElementById('f-date').value;
+
+  let transport = null, value = null;
+  if(!isNaN(hours) && hours > 0){
+    transport = suggestTransport(hours);
+    value = calcValue(hours, transport);
+  }
+  document.getElementById('f-transport-display').value = transport ? transportLabel(transport) : '—';
+  document.getElementById('f-value-display').value = value!=null ? fmtBRL(value) : '—';
+
+  const inBlocklist = isInBlocklist(name);
+  const blocklistPts = inBlocklist ? 45 : 0;
+  const transportPts = transport ? ({air:20, road:10, taxi:0}[transport]||0) : 0;
+  const dataPts = isNearHoliday(dateStr) ? 10 : 0;
+  let reincPts = 0;
+  document.querySelectorAll('.f-risk-factor:checked').forEach(cb=>{ reincPts += parseInt(cb.dataset.pontos)||0; });
+  reincPts = Math.min(reincPts, 25);
+
+  // Ordena os motivos do maior para o menor peso, para que a lista de
+  // casos sempre exiba primeiro o motivo de maior relevância.
+  const reasonCandidates = [
+    {label:'Cliente consta na block list', pts: blocklistPts},
+    {label:'Indícios de reincidência identificados', pts: reincPts},
+    {label: transport ? `Transporte ${transportLabel(transport)} (fator de risco)` : '', pts: transportPts},
+    {label:'Acionamento próximo a data de feriado nacional', pts: dataPts},
+  ].filter(r => r.pts > 0 && r.label).sort((a,b)=> b.pts - a.pts);
+  const parts = reasonCandidates.map(r=>r.label);
+
+  document.getElementById('f-suspicion').value = parts.join(' · ');
+
+  return {blocklistPts, reincPts, transportPts, dataPts, transport, value, hasAnyAuto: parts.length>0};
+}
+
 // ── Modals ────────────────────────────────────────────────────
-function openCaseModal(){
+async function openCaseModal(){
   document.getElementById('modal-case').classList.add('open');
   document.getElementById('f-date').value = new Date().toISOString().slice(0,10);
+  await ensureBlocklistCache();
+  onFormChange();
 }
 function closeCaseModal(){
   document.getElementById('modal-case').classList.remove('open');
@@ -984,38 +1154,42 @@ function closeBlocklistModal(){
 
 async function submitCase(){
   const name = document.getElementById('f-name').value.trim();
-  const suspicion = document.getElementById('f-suspicion').value.trim();
   const hours = parseFloat(document.getElementById('f-hours').value);
-  const value = parseFloat(document.getElementById('f-value').value);
-  const transport = document.getElementById('f-transport').value;
   const status = document.getElementById('f-status').value;
   const date = document.getElementById('f-date').value;
   const justification = document.getElementById('f-justification').value.trim();
-  const reincidencia = parseInt(document.getElementById('f-reincidencia').value)||0;
-  const dataFactor = parseInt(document.getElementById('f-data').value)||0;
 
-  if(!name||!suspicion||!hours||!value||!date){
-    alert('Preencha todos os campos obrigatórios.');
+  if(!name||isNaN(hours)||hours<=0||!date){
+    alert('Preencha nome, horas de viagem e data do acionamento.');
     return;
   }
+
+  await ensureBlocklistCache();
+  const preview = onFormChange();
+  const { transport, value, blocklistPts, reincPts, transportPts, dataPts } = preview;
+
+  if(blocklistPts===0 && reincPts===0 && transportPts===0 && dataPts===0){
+    alert('Nenhum fator de risco automático foi identificado (block list, reincidência, transporte ou data). Selecione ao menos uma opção em "Fatores de risco" para registrar o caso.');
+    return;
+  }
+
+  const suspicion = document.getElementById('f-suspicion').value.trim();
 
   try {
     await api('/api/cases',{
       method:'POST',
       body: JSON.stringify({
         name, suspicion, hours, value, transport, status, date, justification,
-        factors:{blocklist:0, reincidencia, transporte:0, data:dataFactor},
+        factors:{blocklist:0, reincidencia:reincPts, transporte:0, data:0},
         history:[],
       }),
     });
     closeCaseModal();
     document.getElementById('f-name').value='';
-    document.getElementById('f-suspicion').value='';
     document.getElementById('f-hours').value='';
-    document.getElementById('f-value').value='';
     document.getElementById('f-justification').value='';
-    document.getElementById('f-reincidencia').value='0';
-    document.getElementById('f-data').value='0';
+    document.querySelectorAll('.f-risk-factor').forEach(cb=>cb.checked=false);
+    onFormChange();
     await refreshDashboard();
   } catch(e){
     alert('Erro ao criar caso: ' + e.message);
@@ -1042,6 +1216,12 @@ async function submitBlocklist(){
     document.getElementById('bl-name').value='';
     document.getElementById('bl-dob').value='';
     document.getElementById('bl-reasons').value='';
+    // Invalidate the cached blocklist names so new cases immediately
+    // recognize the just-added client without a page reload.
+    blocklistNamesCache = null;
+    await ensureBlocklistCache();
+    const caseModal = document.getElementById('modal-case');
+    if(caseModal && caseModal.classList.contains('open')) onFormChange();
     await loadBlockList();
   } catch(e){
     alert('Erro ao adicionar suspeito: ' + e.message);

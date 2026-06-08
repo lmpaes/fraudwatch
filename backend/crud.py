@@ -195,8 +195,8 @@ def get_kpis(db: Session, filter: str = "all") -> dict:
     }
 
 
-def get_charts(db: Session) -> dict:
-    cases = get_cases(db, "all")
+def get_charts(db: Session, filter: str = "all") -> dict:
+    cases = get_cases(db, filter)
 
     taxi = sum(1 for c in cases if c.transport.value == "taxi")
     road = sum(1 for c in cases if c.transport.value == "road")

@@ -33,8 +33,11 @@ def dashboard_kpis(
 
 
 @app.get("/api/dashboard/charts", response_model=schemas.ChartsOut, tags=["dashboard"])
-def dashboard_charts(db: Session = Depends(get_db)):
-    return crud.get_charts(db)
+def dashboard_charts(
+    filter: str = Query("all", pattern="^(all|week|month)$"),
+    db: Session = Depends(get_db),
+):
+    return crud.get_charts(db, filter)
 
 
 @app.get("/", tags=["health"])

@@ -2,7 +2,8 @@
 import sys, os
 sys.path.insert(0, os.path.dirname(__file__))
 
-from datetime import date
+import random
+from datetime import date, timedelta
 from database import SessionLocal, engine
 import models
 from services.score import generate_initials, generate_color, calculate_score
@@ -333,6 +334,51 @@ CASES_SEED = [
 ]
 
 
+# ── Distribuição aleatória e estratificada das datas ──────────
+# Em vez de usar datas fixas (que ficam "velhas" com o tempo) ou um deslocamento
+# fixo a partir de uma âncora (que sempre produz a mesma divisão por filtro),
+# sorteamos uma data para cada caso dentro de 3 faixas:
+#   ~60% dentro da semana atual          -> aparecem no filtro "Semana atual"
+#   ~20% no restante do mês atual        -> somados aos da semana, ~80% no "Mês atual"
+#   ~20% em meses anteriores             -> mantém "Todos os casos" com histórico variado
+# O sorteio é embaralhado a cada execução do seed, então quais casos (e,
+# consequentemente, quais status) caem em cada janela muda a cada rodada —
+# evitando o padrão artificial de "sempre os mesmos números" por filtro.
+
+def _random_date(start: date, end: date) -> date:
+    if start > end:
+        start, end = end, start
+    return start + timedelta(days=random.randint(0, (end - start).days))
+
+
+def _build_date_pool(n: int) -> list[date]:
+    today = date.today()
+    month_start = today.replace(day=1)
+    monday = today - timedelta(days=today.weekday())
+
+    n_week = round(n * 0.6)
+    n_month_only = round(n * 0.2)
+    n_older = n - n_week - n_month_only
+
+    week_start = max(monday, month_start)
+    month_only_start = month_start
+    month_only_end = week_start - timedelta(days=1)
+    older_end = month_start - timedelta(days=1)
+    older_start = month_start - timedelta(days=180)
+
+    pool: list[date] = []
+    pool += [_random_date(week_start, today) for _ in range(n_week)]
+    if month_only_end >= month_only_start:
+        pool += [_random_date(month_only_start, month_only_end) for _ in range(n_month_only)]
+    else:
+        # Início do mês: não há "resto do mês" antes da semana atual — usa a própria semana
+        pool += [_random_date(week_start, today) for _ in range(n_month_only)]
+    pool += [_random_date(older_start, older_end) for _ in range(n_older)]
+
+    random.shuffle(pool)
+    return pool
+
+
 def seed():
     db = SessionLocal()
     try:
@@ -368,10 +414,13 @@ def seed():
                 self.transporte = d["transporte"]
                 self.data = d["data"]
 
-        for c in CASES_SEED:
+        date_pool = _build_date_pool(len(CASES_SEED))
+
+        for c, case_date in zip(CASES_SEED, date_pool):
+            offset = case_date - c["date"]
             in_bl = c["name"].lower() in blocklist_names
             f_obj = FactorsObj(c["factors"])
-            score, computed = calculate_score(db, c["name"], c["transport"], c["date"], f_obj, in_bl)
+            score, computed = calculate_score(db, c["name"], c["transport"], case_date, f_obj, in_bl)
 
             case = models.Case(
                 name=c["name"],
@@ -383,7 +432,7 @@ def seed():
                 value=c["value"],
                 score=score,
                 status=c["status"],
-                date=c["date"],
+                date=case_date,
                 justification=c.get("justification"),
             )
             db.add(case)
@@ -392,7 +441,7 @@ def seed():
             db.add(models.CaseFactor(case_id=case.id, **computed))
 
             for h in c.get("history", []):
-                db.add(models.CaseHistory(case_id=case.id, d=h["d"], t=h["t"]))
+                db.add(models.CaseHistory(case_id=case.id, d=h["d"] + offset, t=h["t"]))
 
         db.commit()
         print(f"✓ Cases: {len(CASES_SEED)} cases inserted")
