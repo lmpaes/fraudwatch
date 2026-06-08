@@ -3,6 +3,9 @@ from typing import Optional, List
 from pydantic import BaseModel, field_validator
 from models import TransportEnum, StatusEnum
 
+_Date = date  # alias para evitar conflito de nome em CaseUpdate (campo 'date: Optional[date]'
+              # cria atributo de classe date=None, que sombrearia datetime.date no Pydantic v2)
+
 
 # ── CaseHistory ──────────────────────────────────────────────
 
@@ -64,7 +67,7 @@ class CaseUpdate(BaseModel):
     transport: Optional[TransportEnum] = None
     value: Optional[float] = None
     status: Optional[StatusEnum] = None
-    date: Optional[date] = None
+    date: Optional[_Date] = None
     justification: Optional[str] = None
     factors: Optional[CaseFactorCreate] = None
     history: Optional[List[CaseHistoryCreate]] = None
