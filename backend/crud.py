@@ -1,6 +1,6 @@
 from datetime import date, timedelta
 from typing import Optional, List
-from sqlalchemy import func, extract
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 import models, schemas
 from services.score import (
@@ -13,13 +13,9 @@ from services.score import (
 def _apply_filter(query, filter: str):
     today = date.today()
     if filter == "week":
-        monday = today - timedelta(days=today.weekday())
-        return query.filter(models.Case.date >= monday)
+        return query.filter(models.Case.date >= today - timedelta(days=6))
     if filter == "month":
-        return query.filter(
-            extract("year", models.Case.date) == today.year,
-            extract("month", models.Case.date) == today.month,
-        )
+        return query.filter(models.Case.date >= today - timedelta(days=29))
     return query
 
 

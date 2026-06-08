@@ -278,9 +278,17 @@ button{cursor:pointer;font-family:var(--font-body)}
 }
 .bl-row{
   border-bottom:1px solid var(--border);padding:20px 28px;
-  display:grid;grid-template-columns:46px 1fr 1fr;
+  display:grid;grid-template-columns:46px 1fr 1fr auto;
   align-items:start;gap:20px;transition:background .14s;
 }
+.bl-actions{display:flex;gap:6px;align-items:center;flex-shrink:0}
+.bl-btn{
+  background:none;border:1px solid var(--border);border-radius:7px;
+  color:var(--muted);padding:5px 8px;font-size:13px;
+  display:flex;align-items:center;transition:all .15s;
+}
+.bl-btn:hover{color:var(--txt);border-color:var(--border-hover);background:var(--card)}
+.bl-btn.danger:hover{color:var(--red);border-color:#FF4C4C44;background:#FF4C4C0E}
 .bl-row:last-child{border-bottom:none}
 .bl-row:hover{background:#1D2032}
 .bl-avatar{
@@ -418,8 +426,8 @@ button{cursor:pointer;font-family:var(--font-body)}
         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
           <div class="filter-tabs">
             <button class="ftab active" onclick="setFilter('all',this)">Todos os casos</button>
-            <button class="ftab" onclick="setFilter('week',this)">Semana atual</button>
-            <button class="ftab" onclick="setFilter('month',this)">Mês atual</button>
+            <button class="ftab" onclick="setFilter('week',this)">Últimos 7 dias</button>
+            <button class="ftab" onclick="setFilter('month',this)">Últimos 30 dias</button>
           </div>
           <button class="btn-primary" onclick="openCaseModal()">
             <i class="ti ti-plus"></i> Novo caso
@@ -661,14 +669,21 @@ button{cursor:pointer;font-family:var(--font-body)}
   </div>
 </div>
 
-<!-- MODAL: Novo suspeito blocklist -->
+<!-- MODAL: Novo suspeito / edição blocklist -->
 <div class="modal-overlay" id="modal-blocklist">
   <div class="modal">
     <div class="modal-header">
-      <div class="modal-title"><i class="ti ti-ban" style="color:var(--red);margin-right:8px"></i>Adicionar à Block List</div>
+      <div class="modal-title" id="bl-modal-title">
+        <i class="ti ti-ban" style="color:var(--red);margin-right:8px"></i>Adicionar à Block List
+      </div>
       <button class="sidebar-close" onclick="closeBlocklistModal()"><i class="ti ti-x"></i></button>
     </div>
     <div class="modal-body">
+      <div id="bl-edit-notice" style="display:none;background:#FF4C4C0D;border:1px solid #FF4C4C2A;border-radius:8px;padding:12px 14px;font-size:12px;color:#FFB3B3;line-height:1.6;margin-bottom:4px">
+        <i class="ti ti-info-circle" style="margin-right:6px"></i>
+        Casos históricos já registrados para este cliente <strong>não serão alterados</strong> —
+        o score e os fatores ficam gravados no momento do cadastro do caso.
+      </div>
       <div class="form-row cols-2">
         <div class="form-group" style="grid-column:1/-1">
           <label class="form-label">Nome completo</label>
@@ -686,7 +701,9 @@ button{cursor:pointer;font-family:var(--font-body)}
     </div>
     <div class="modal-footer">
       <button class="btn-outline" onclick="closeBlocklistModal()">Cancelar</button>
-      <button class="btn-danger" onclick="submitBlocklist()"><i class="ti ti-ban"></i> Adicionar</button>
+      <button class="btn-danger" id="bl-submit-btn" onclick="submitBlocklist()">
+        <i class="ti ti-ban"></i> Adicionar
+      </button>
     </div>
   </div>
 </div>
@@ -696,6 +713,9 @@ button{cursor:pointer;font-family:var(--font-body)}
 const API = 'http://localhost:8000';
 let currentFilter = 'all';
 let selectedId = null;
+let editingCaseId = null;
+let currentCaseData = null;
+let editingBlocklistId = null;
 const charts = {};
 
 // ── Clock ─────────────────────────────────────────────────────
@@ -933,6 +953,7 @@ async function loadCharts(){
 async function openDetail(id){
   selectedId = id;
   const c = await api(`/api/cases/${id}`);
+  currentCaseData = c;
   const col = scoreColor(c.score);
 
   document.getElementById('sb-title').textContent = c.name;
@@ -991,10 +1012,15 @@ async function openDetail(id){
       <div class="sb-section-label">Justificativa da suspeita</div>
       <div class="justif-box">${c.justification||'Sem justificativa registrada.'}</div>
     </div>
-    <div style="display:flex;gap:8px">
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn-primary" style="flex:1" onclick="openEditModal()"><i class="ti ti-pencil"></i> Editar</button>
       <button class="btn-outline" style="flex:1" onclick="patchStatus(${c.id},'released')"><i class="ti ti-check"></i> Liberar</button>
       <button class="btn-danger" style="flex:1" onclick="patchStatus(${c.id},'denied')"><i class="ti ti-x"></i> Negar</button>
-    </div>`;
+    </div>
+    <button class="btn-danger" style="width:100%;justify-content:center;margin-top:2px"
+      onclick="deleteCase(${c.id},'${c.name.replace(/'/g,"\\'")}')">
+      <i class="ti ti-trash"></i> Excluir caso permanentemente
+    </button>`;
 
   document.getElementById('sidebar').classList.add('open');
   document.getElementById('main-content').classList.add('sidebar-open');
@@ -1007,6 +1033,22 @@ async function patchStatus(id, status){
   await api(`/api/cases/${id}/status`,{method:'PATCH',body:JSON.stringify({status})});
   closeSidebar();
   await refreshDashboard();
+}
+
+async function deleteCase(id, name){
+  const confirmed = confirm(
+    `Tem certeza que deseja excluir permanentemente o caso de "${name}"?\n\n` +
+    `Esta ação não pode ser desfeita — o caso, seus fatores de risco e ` +
+    `histórico de acionamentos serão removidos definitivamente.`
+  );
+  if(!confirmed) return;
+  try {
+    await api(`/api/cases/${id}`, {method: 'DELETE'});
+    closeSidebar();
+    await refreshDashboard();
+  } catch(e){
+    alert('Erro ao excluir caso: ' + e.message);
+  }
 }
 
 function closeSidebar(){
@@ -1046,6 +1088,16 @@ async function loadBlockList(){
       </div>
       <div class="bl-reasons">
         ${b.reasons.map(r=>`<span class="bl-reason">${r.reason}</span>`).join('')}
+      </div>
+      <div class="bl-actions">
+        <button class="bl-btn" title="Editar cadastro"
+          onclick="openBlocklistEditModal(${JSON.stringify(b).replace(/"/g,'&quot;')})">
+          <i class="ti ti-pencil"></i>
+        </button>
+        <button class="bl-btn danger" title="Remover da Block List"
+          onclick="deleteBlocklistEntry(${b.id},'${b.name.replace(/'/g,"\\'")}')">
+          <i class="ti ti-trash"></i>
+        </button>
       </div>
     </div>`).join('');
 }
@@ -1137,18 +1189,102 @@ function onFormChange(){
 
 // ── Modals ────────────────────────────────────────────────────
 async function openCaseModal(){
-  document.getElementById('modal-case').classList.add('open');
+  editingCaseId = null;
+  document.querySelector('#modal-case .modal-title').innerHTML =
+    '<i class="ti ti-plus" style="color:var(--blue);margin-right:8px"></i>Novo caso suspeito';
+  document.querySelector('#modal-case .modal-footer .btn-primary').innerHTML =
+    '<i class="ti ti-check"></i> Criar caso';
+  document.getElementById('f-name').value = '';
+  document.getElementById('f-hours').value = '';
   document.getElementById('f-date').value = new Date().toISOString().slice(0,10);
+  document.getElementById('f-status').value = 'open';
+  document.getElementById('f-justification').value = '';
+  document.querySelectorAll('.f-risk-factor').forEach(cb => cb.checked = false);
+  document.getElementById('modal-case').classList.add('open');
   await ensureBlocklistCache();
   onFormChange();
 }
+
+async function openEditModal(){
+  const c = currentCaseData;
+  if(!c) return;
+  editingCaseId = c.id;
+  document.querySelector('#modal-case .modal-title').innerHTML =
+    '<i class="ti ti-pencil" style="color:var(--blue);margin-right:8px"></i>Editar caso';
+  document.querySelector('#modal-case .modal-footer .btn-primary').innerHTML =
+    '<i class="ti ti-check"></i> Salvar alterações';
+  // Se o caso foi criado com fator blocklist, bloqueia edição do nome
+  // para evitar que o score seja reprocessado sem o peso da blocklist.
+  const hasBlocklistFactor = c.factors && c.factors.blocklist > 0;
+  const nameField = document.getElementById('f-name');
+  nameField.value = c.name;
+  nameField.readOnly = hasBlocklistFactor;
+  nameField.style.opacity = hasBlocklistFactor ? '.6' : '';
+  nameField.style.cursor  = hasBlocklistFactor ? 'not-allowed' : '';
+  nameField.title = hasBlocklistFactor
+    ? 'Nome bloqueado: cliente era membro da Block List no momento do registro'
+    : '';
+  document.getElementById('f-hours').value = c.hours;
+  document.getElementById('f-date').value = c.date;
+  document.getElementById('f-status').value = c.status;
+  document.getElementById('f-justification').value = c.justification || '';
+  // Pré-marca checkboxes com base nos pontos de reincidência salvos
+  const reincPts = c.factors ? c.factors.reincidencia : 0;
+  let remaining = reincPts;
+  document.querySelectorAll('.f-risk-factor').forEach(cb => {
+    const pts = parseInt(cb.dataset.pontos) || 0;
+    if(remaining >= pts){ cb.checked = true; remaining -= pts; }
+    else { cb.checked = false; }
+  });
+  document.getElementById('modal-case').classList.add('open');
+  await ensureBlocklistCache();
+  onFormChange();
+}
+
 function closeCaseModal(){
+  editingCaseId = null;
+  const nameField = document.getElementById('f-name');
+  nameField.readOnly = false;
+  nameField.style.opacity = '';
+  nameField.style.cursor  = '';
+  nameField.title = '';
   document.getElementById('modal-case').classList.remove('open');
 }
 function openBlocklistModal(){
+  editingBlocklistId = null;
+  document.getElementById('bl-modal-title').innerHTML =
+    '<i class="ti ti-ban" style="color:var(--red);margin-right:8px"></i>Adicionar à Block List';
+  document.getElementById('bl-submit-btn').innerHTML =
+    '<i class="ti ti-ban"></i> Adicionar';
+  document.getElementById('bl-edit-notice').style.display = 'none';
+  document.getElementById('bl-name').value = '';
+  document.getElementById('bl-name').readOnly = false;
+  document.getElementById('bl-name').style.opacity = '';
+  document.getElementById('bl-name').style.cursor = '';
+  document.getElementById('bl-dob').value = '';
+  document.getElementById('bl-reasons').value = '';
   document.getElementById('modal-blocklist').classList.add('open');
 }
+
+function openBlocklistEditModal(entry){
+  editingBlocklistId = entry.id;
+  document.getElementById('bl-modal-title').innerHTML =
+    '<i class="ti ti-pencil" style="color:var(--red);margin-right:8px"></i>Editar cadastro';
+  document.getElementById('bl-submit-btn').innerHTML =
+    '<i class="ti ti-check"></i> Salvar alterações';
+  document.getElementById('bl-edit-notice').style.display = 'block';
+  document.getElementById('bl-name').value = entry.name;
+  document.getElementById('bl-name').readOnly = false;
+  document.getElementById('bl-name').style.opacity = '';
+  document.getElementById('bl-name').style.cursor = '';
+  document.getElementById('bl-dob').value = entry.dob;
+  document.getElementById('bl-reasons').value =
+    (entry.reasons || []).map(r => r.reason).join('\n');
+  document.getElementById('modal-blocklist').classList.add('open');
+}
+
 function closeBlocklistModal(){
+  editingBlocklistId = null;
   document.getElementById('modal-blocklist').classList.remove('open');
 }
 
@@ -1168,7 +1304,7 @@ async function submitCase(){
   const preview = onFormChange();
   const { transport, value, blocklistPts, reincPts, transportPts, dataPts } = preview;
 
-  if(blocklistPts===0 && reincPts===0 && transportPts===0 && dataPts===0){
+  if(!editingCaseId && blocklistPts===0 && reincPts===0 && transportPts===0 && dataPts===0){
     alert('Nenhum fator de risco automático foi identificado (block list, reincidência, transporte ou data). Selecione ao menos uma opção em "Fatores de risco" para registrar o caso.');
     return;
   }
@@ -1176,56 +1312,84 @@ async function submitCase(){
   const suspicion = document.getElementById('f-suspicion').value.trim();
 
   try {
-    await api('/api/cases',{
-      method:'POST',
-      body: JSON.stringify({
-        name, suspicion, hours, value, transport, status, date, justification,
-        factors:{blocklist:0, reincidencia:reincPts, transporte:0, data:0},
-        history:[],
-      }),
-    });
+    if(editingCaseId){
+      await api(`/api/cases/${editingCaseId}`,{
+        method:'PUT',
+        body: JSON.stringify({
+          name, suspicion, hours, value, transport, status, date, justification,
+          factors:{blocklist:0, reincidencia:reincPts, transporte:0, data:0},
+        }),
+      });
+    } else {
+      await api('/api/cases',{
+        method:'POST',
+        body: JSON.stringify({
+          name, suspicion, hours, value, transport, status, date, justification,
+          factors:{blocklist:0, reincidencia:reincPts, transporte:0, data:0},
+          history:[],
+        }),
+      });
+    }
     closeCaseModal();
-    document.getElementById('f-name').value='';
-    document.getElementById('f-hours').value='';
-    document.getElementById('f-justification').value='';
-    document.querySelectorAll('.f-risk-factor').forEach(cb=>cb.checked=false);
-    onFormChange();
+    closeSidebar();
     await refreshDashboard();
   } catch(e){
-    alert('Erro ao criar caso: ' + e.message);
+    alert('Erro ao salvar caso: ' + e.message);
   }
 }
 
 async function submitBlocklist(){
-  const name = document.getElementById('bl-name').value.trim();
-  const dob = document.getElementById('bl-dob').value;
+  const name    = document.getElementById('bl-name').value.trim();
+  const dob     = document.getElementById('bl-dob').value;
   const reasons = document.getElementById('bl-reasons').value
-    .split('\n').map(r=>r.trim()).filter(Boolean);
+    .split('\n').map(r => r.trim()).filter(Boolean);
 
-  if(!name||!dob){
+  if(!name || !dob){
     alert('Preencha nome e data de nascimento.');
     return;
   }
 
   try {
-    await api('/api/blocklist',{
-      method:'POST',
-      body: JSON.stringify({name, dob, reasons}),
-    });
+    if(editingBlocklistId){
+      await api(`/api/blocklist/${editingBlocklistId}`, {
+        method: 'PUT',
+        body: JSON.stringify({name, dob, reasons}),
+      });
+    } else {
+      await api('/api/blocklist', {
+        method: 'POST',
+        body: JSON.stringify({name, dob, reasons}),
+      });
+    }
     closeBlocklistModal();
-    document.getElementById('bl-name').value='';
-    document.getElementById('bl-dob').value='';
-    document.getElementById('bl-reasons').value='';
-    // Invalidate the cached blocklist names so new cases immediately
-    // recognize the just-added client without a page reload.
-    blocklistNamesCache = null;
-    await ensureBlocklistCache();
-    const caseModal = document.getElementById('modal-case');
-    if(caseModal && caseModal.classList.contains('open')) onFormChange();
-    await loadBlockList();
+    await _refreshBlocklistCache();
   } catch(e){
-    alert('Erro ao adicionar suspeito: ' + e.message);
+    alert('Erro ao salvar cadastro: ' + e.message);
   }
+}
+
+async function deleteBlocklistEntry(id, name){
+  const confirmed = confirm(
+    `Tem certeza que deseja remover "${name}" da Block List?\n\n` +
+    `Casos históricos já registrados não serão alterados — ` +
+    `o score e os fatores ficam gravados no momento do cadastro do caso.`
+  );
+  if(!confirmed) return;
+  try {
+    await api(`/api/blocklist/${id}`, {method: 'DELETE'});
+    await _refreshBlocklistCache();
+  } catch(e){
+    alert('Erro ao remover da Block List: ' + e.message);
+  }
+}
+
+// Atualiza cache de nomes + lista visível + formulário de caso (se aberto)
+async function _refreshBlocklistCache(){
+  blocklistNamesCache = null;
+  await ensureBlocklistCache();
+  const caseModal = document.getElementById('modal-case');
+  if(caseModal && caseModal.classList.contains('open')) onFormChange();
+  await loadBlockList();
 }
 
 // ── Dashboard refresh ─────────────────────────────────────────

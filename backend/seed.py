@@ -10,7 +10,7 @@ from services.score import generate_initials, generate_color, calculate_score
 
 models.Base.metadata.create_all(bind=engine)
 
-# ── Blocklist seed ────────────────────────────────────────────
+# ── Blocklist seed (15 entradas) ──────────────────────────────
 BLOCKLIST_SEED = [
     {
         "name": "Roberto Alves Mendes", "dob": date(1978, 3, 12),
@@ -48,341 +48,290 @@ BLOCKLIST_SEED = [
             "Passagens aéreas para destinos distintos da residência",
         ],
     },
-]
-
-# ── Cases seed ────────────────────────────────────────────────
-CASES_SEED = [
-    # Original 15 cases
+    # ── 10 novos ──────────────────────────────────────────────
     {
-        "name": "Roberto Alves Mendes", "suspicion": "Reincidência + Block List",
-        "hours": 17, "transport": "air", "value": 2840,
-        "status": "denied", "date": date(2026, 5, 19),
-        "justification": "Cliente consta na block list com fraude confirmada por perícia. Terceiro acionamento no ano com sinistro reportado em véspera de feriado nacional. Passagem aérea solicitada para destino diferente da residência cadastrada.",
-        "factors": {"blocklist": 45, "reincidencia": 25, "transporte": 20, "data": 10},
-        "history": [
-            {"d": date(2026, 3, 10), "t": "Passagem aérea · R$ 2.100"},
-            {"d": date(2025, 11, 22), "t": "Rodoviário · R$ 680"},
-            {"d": date(2025, 8, 15), "t": "Passagem aérea · R$ 1.950"},
+        "name": "Andréia Sampaio Correia", "dob": date(1983, 6, 14),
+        "reasons": [
+            "Solicitou mudança de endereço durante o acionamento",
+            "Motorista relatou bagagens volumosas incompatíveis com pane",
         ],
     },
     {
-        "name": "Ana Paula Gomes", "suspicion": "Transporte aéreo + data suspeita",
-        "hours": 16, "transport": "air", "value": 2100,
-        "status": "open", "date": date(2026, 5, 18),
-        "justification": "Sinistro registrado na sexta antes de feriado prolongado. Distância justifica passagem aérea. Histórico limpo — apenas um acionamento anterior no ano passado. Caso em análise preventiva.",
-        "factors": {"blocklist": 0, "reincidencia": 0, "transporte": 20, "data": 10},
-        "history": [{"d": date(2025, 6, 3), "t": "Táxi · R$ 310"}],
-    },
-    {
-        "name": "Carlos Eduardo Pinto", "suspicion": "Reincidência (3x no ano)",
-        "hours": 11, "transport": "road", "value": 720,
-        "status": "open", "date": date(2026, 5, 17),
-        "justification": "Três acionamentos no ano corrente. Padrão de sinistros em rodovias próximas a destinos turísticos frequentes. Necessita revisão detalhada.",
-        "factors": {"blocklist": 0, "reincidencia": 25, "transporte": 10, "data": 0},
-        "history": [
-            {"d": date(2026, 4, 2), "t": "Rodoviário · R$ 650"},
-            {"d": date(2026, 1, 28), "t": "Táxi · R$ 290"},
+        "name": "Sérgio Pinheiro Moraes", "dob": date(1976, 2, 22),
+        "reasons": [
+            "Dois sinistros em 30 dias com diferentes veículos",
+            "Documentação do segundo sinistro identificada como fraudulenta",
         ],
     },
     {
-        "name": "Camila Torres Souza", "suspicion": "Block List · aéreo · reincidência",
-        "hours": 18, "transport": "air", "value": 3100,
-        "status": "denied", "date": date(2026, 5, 16),
-        "justification": "Reincidente em block list. Dois acionamentos anteriores com passagem aérea em anos consecutivos. Caso negado automaticamente pela presença em block list.",
-        "factors": {"blocklist": 45, "reincidencia": 15, "transporte": 20, "data": 0},
-        "history": [
-            {"d": date(2025, 12, 27), "t": "Passagem aérea · R$ 2.800"},
-            {"d": date(2025, 3, 14), "t": "Aéreo · R$ 2.400"},
+        "name": "Alessandra Viana Roque", "dob": date(1992, 10, 8),
+        "reasons": [
+            "Reincidência confirmada em 3 apólices distintas",
+            "Acionamento em área sem cobertura de rede — localização inconsistente",
         ],
     },
     {
-        "name": "Luís Henrique Ramos", "suspicion": "Data suspeita · véspera de feriado",
-        "hours": 8, "transport": "taxi", "value": 390,
-        "status": "released", "date": date(2026, 5, 15),
-        "justification": "Único fator de risco: data próxima a feriado. Sem histórico de reincidência. Primeiro acionamento. Sinistro validado com documentação completa. Caso liberado.",
-        "factors": {"blocklist": 0, "reincidencia": 0, "transporte": 0, "data": 10},
-        "history": [],
-    },
-    {
-        "name": "Fernanda Melo Castro", "suspicion": "Reincidência (2x) + rodoviário",
-        "hours": 13, "transport": "road", "value": 680,
-        "status": "released", "date": date(2026, 5, 14),
-        "justification": "Dois acionamentos no ano com transporte rodoviário. Score na faixa de risco baixo. Documentação do sinistro válida. Liberado após análise.",
-        "factors": {"blocklist": 0, "reincidencia": 15, "transporte": 10, "data": 0},
-        "history": [{"d": date(2026, 2, 10), "t": "Rodoviário · R$ 630"}],
-    },
-    {
-        "name": "Ricardo Souza Barros", "suspicion": "Reincidência + aéreo + data",
-        "hours": 16, "transport": "air", "value": 2650,
-        "status": "open", "date": date(2026, 5, 13),
-        "justification": "Segunda passagem aérea no ano. Sinistro ocorrido na quinta antes de feriado. Padrão de acionamentos em períodos estratégicos de viagem. Em análise prioritária.",
-        "factors": {"blocklist": 0, "reincidencia": 25, "transporte": 20, "data": 10},
-        "history": [
-            {"d": date(2026, 3, 19), "t": "Aéreo · R$ 2.200"},
-            {"d": date(2025, 11, 5), "t": "Táxi · R$ 350"},
+        "name": "Celso Drummond Netto", "dob": date(1965, 5, 3),
+        "reasons": [
+            "Conluio com borracheiro para fabricação de pane",
+            "Testemunhas contradizem versão apresentada pelo cliente",
         ],
     },
     {
-        "name": "Mariana Lopes Vieira", "suspicion": "Transporte aéreo · 1º acionamento",
-        "hours": 15.5, "transport": "air", "value": 1980,
-        "status": "open", "date": date(2026, 5, 12),
-        "justification": "Primeiro acionamento no histórico. Passagem aérea como único fator de risco. Monitoramento preventivo ativado.",
-        "factors": {"blocklist": 0, "reincidencia": 0, "transporte": 20, "data": 0},
-        "history": [],
-    },
-    {
-        "name": "Fernando Lima Costa", "suspicion": "Block List · guincho suspeito",
-        "hours": 10.5, "transport": "road", "value": 740,
-        "status": "denied", "date": date(2026, 5, 11),
-        "justification": "Cliente em block list por conluio com oficina parceira. Guincho registrado com carga incomum pelo operador. Negado preventivamente.",
-        "factors": {"blocklist": 45, "reincidencia": 15, "transporte": 10, "data": 0},
-        "history": [
-            {"d": date(2026, 1, 5), "t": "Aéreo · R$ 2.600"},
-            {"d": date(2025, 9, 22), "t": "Rodoviário · R$ 710"},
+        "name": "Mirela Assis Furtado", "dob": date(1988, 12, 17),
+        "reasons": [
+            "Passagem aérea solicitada para rota turística sem justificativa de sinistro",
+            "4 acionamentos em 24 meses com destinos incoerentes",
         ],
     },
     {
-        "name": "Juliana Ferreira Dias", "suspicion": "Reincidência (3x) + data suspeita",
-        "hours": 9, "transport": "taxi", "value": 420,
-        "status": "open", "date": date(2026, 5, 10),
-        "justification": "Três acionamentos no ano, todos registrados próximos a feriados nacionais. Padrão consistente de uso oportunista do benefício.",
-        "factors": {"blocklist": 0, "reincidencia": 25, "transporte": 0, "data": 10},
-        "history": [
-            {"d": date(2026, 4, 18), "t": "Táxi · R$ 380"},
-            {"d": date(2026, 2, 1), "t": "Táxi · R$ 400"},
+        "name": "Jonas Tavares Brito", "dob": date(1973, 8, 30),
+        "reasons": [
+            "Sinistro encenado confirmado por câmeras de segurança",
+            "Utilizou serviço de reboque para transporte de mercadorias",
         ],
     },
     {
-        "name": "Thiago Nascimento Reis", "suspicion": "Primeiro acionamento · aéreo",
-        "hours": 16, "transport": "air", "value": 2200,
-        "status": "released", "date": date(2026, 5, 8),
-        "justification": "Sem histórico anterior. Sinistro validado com boletim de ocorrência e fotos. Passagem aérea autorizada.",
-        "factors": {"blocklist": 0, "reincidencia": 0, "transporte": 20, "data": 0},
-        "history": [],
-    },
-    {
-        "name": "Beatriz Almeida Cruz", "suspicion": "Rodoviário + véspera de feriado",
-        "hours": 12, "transport": "road", "value": 610,
-        "status": "open", "date": date(2026, 5, 7),
-        "justification": "Acionamento em véspera de feriado com transporte rodoviário. Aguardando documentação complementar para análise.",
-        "factors": {"blocklist": 0, "reincidencia": 0, "transporte": 10, "data": 10},
-        "history": [],
-    },
-    {
-        "name": "Márcio Vieira Braga", "suspicion": "Block List · aéreo · reincidência máx.",
-        "hours": 17.5, "transport": "air", "value": 3200,
-        "status": "denied", "date": date(2026, 5, 6),
-        "justification": "Score máximo (100). Block list + maior faixa de reincidência + passagem aérea + data suspeita. Negado automaticamente pelo sistema.",
-        "factors": {"blocklist": 45, "reincidencia": 25, "transporte": 20, "data": 10},
-        "history": [
-            {"d": date(2026, 2, 14), "t": "Aéreo · R$ 3.100"},
-            {"d": date(2025, 12, 20), "t": "Aéreo · R$ 2.900"},
-            {"d": date(2025, 8, 10), "t": "Aéreo · R$ 2.750"},
+        "name": "Débora Mendonça Leal", "dob": date(1995, 3, 25),
+        "reasons": [
+            "Acionamentos sempre em vésperas de feriados prolongados",
+            "Destinos dos acionamentos coincidem com roteiros turísticos frequentes",
         ],
     },
     {
-        "name": "Patrícia Rocha Nunes", "suspicion": "Block List · objetos suspeitos no guincho",
-        "hours": 14, "transport": "road", "value": 890,
-        "status": "denied", "date": date(2026, 5, 4),
-        "justification": "Block list ativa. Objetos pesados encontrados no veículo pelo operador do guincho, sugerindo uso do serviço para transporte de pertences.",
-        "factors": {"blocklist": 45, "reincidencia": 15, "transporte": 10, "data": 0},
-        "history": [{"d": date(2025, 7, 30), "t": "Rodoviário · R$ 760"}],
-    },
-    {
-        "name": "Alexandre Cunha Torres", "suspicion": "Reincidência (2x) + aéreo",
-        "hours": 15.5, "transport": "air", "value": 2050,
-        "status": "open", "date": date(2026, 5, 2),
-        "justification": "Dois acionamentos no ano. Segundo com passagem aérea. Padrão crescente de custo. Monitoramento ativo.",
-        "factors": {"blocklist": 0, "reincidencia": 15, "transporte": 20, "data": 0},
-        "history": [{"d": date(2026, 1, 11), "t": "Táxi · R$ 320"}],
-    },
-    # Additional 15 realistic cases
-    {
-        "name": "Diego Rocha Ferreira", "suspicion": "Aéreo + data suspeita + reincidência",
-        "hours": 14.5, "transport": "air", "value": 2380,
-        "status": "open", "date": date(2026, 4, 20),
-        "justification": "Acionamento registrado na véspera do feriado de Tiradentes. Segunda passagem aérea no semestre. Padrão de uso em períodos de feriados nacionais.",
-        "factors": {"blocklist": 0, "reincidencia": 15, "transporte": 20, "data": 10},
-        "history": [{"d": date(2026, 1, 30), "t": "Aéreo · R$ 2.100"}],
-    },
-    {
-        "name": "Isabela Fontes Martins", "suspicion": "Rodoviário recorrente",
-        "hours": 9.5, "transport": "road", "value": 590,
-        "status": "released", "date": date(2026, 4, 15),
-        "justification": "Dois acionamentos rodoviários em três meses. Documentação completa em ambos. Score baixo, caso liberado após revisão.",
-        "factors": {"blocklist": 0, "reincidencia": 15, "transporte": 10, "data": 0},
-        "history": [{"d": date(2026, 1, 20), "t": "Rodoviário · R$ 540"}],
-    },
-    {
-        "name": "Gustavo Mendes Araújo", "suspicion": "Transporte aéreo isolado",
-        "hours": 17, "transport": "air", "value": 1950,
-        "status": "open", "date": date(2026, 4, 10),
-        "justification": "Primeiro acionamento com passagem aérea. Sem histórico anterior. Monitoramento padrão ativado para perfil de novo cliente.",
-        "factors": {"blocklist": 0, "reincidencia": 0, "transporte": 20, "data": 0},
-        "history": [],
-    },
-    {
-        "name": "Larissa Campos Duarte", "suspicion": "Reincidência táxi + data feriado",
-        "hours": 6, "transport": "taxi", "value": 350,
-        "status": "open", "date": date(2026, 4, 19),
-        "justification": "Terceiro acionamento de táxi em quatro meses. Data coincide com feriado de Tiradentes. Valor baixo mas padrão suspeito.",
-        "factors": {"blocklist": 0, "reincidencia": 25, "transporte": 0, "data": 10},
-        "history": [
-            {"d": date(2026, 3, 5), "t": "Táxi · R$ 290"},
-            {"d": date(2026, 1, 15), "t": "Táxi · R$ 310"},
+        "name": "Paulo Rogerio Farias", "dob": date(1969, 7, 11),
+        "reasons": [
+            "Declaração falsa sobre local do sinistro comprovada por GPS",
+            "Três apólices ativas em nome de familiares acionadas sequencialmente",
         ],
     },
     {
-        "name": "Eduardo Pires Nogueira", "suspicion": "Rodoviário · véspera carnaval",
-        "hours": 12, "transport": "road", "value": 870,
-        "status": "denied", "date": date(2026, 3, 4),
-        "justification": "Sinistro registrado na quarta de carnaval com veículo carregado de pertences. Operador relatou irregularidade. Caso negado.",
-        "factors": {"blocklist": 0, "reincidencia": 0, "transporte": 10, "data": 10},
-        "history": [],
-    },
-    {
-        "name": "Vanessa Lima Teixeira", "suspicion": "Aéreo + reincidência alta",
-        "hours": 18, "transport": "air", "value": 2750,
-        "status": "open", "date": date(2026, 3, 20),
-        "justification": "Quarta passagem aérea nos últimos 18 meses. Destinos variados sem relação com endereço de residência. Em análise de reincidência.",
-        "factors": {"blocklist": 0, "reincidencia": 25, "transporte": 20, "data": 0},
-        "history": [
-            {"d": date(2025, 12, 10), "t": "Aéreo · R$ 2.600"},
-            {"d": date(2025, 8, 22), "t": "Aéreo · R$ 2.400"},
-            {"d": date(2025, 4, 5), "t": "Aéreo · R$ 2.300"},
+        "name": "Cristiane Dornelas Paz", "dob": date(1980, 1, 9),
+        "reasons": [
+            "Guincho desviado do trajeto acordado pelo motorista",
+            "Histórico de fraudes em outras seguradoras identificado",
         ],
     },
     {
-        "name": "Bruno Cavalcante Mota", "suspicion": "Táxi + data suspeita",
-        "hours": 7, "transport": "taxi", "value": 410,
-        "status": "released", "date": date(2026, 3, 15),
-        "justification": "Acionamento próximo a feriado, porém com documentação válida e histórico limpo. Liberado após análise documental.",
-        "factors": {"blocklist": 0, "reincidencia": 0, "transporte": 0, "data": 10},
-        "history": [],
-    },
-    {
-        "name": "Renata Souza Monteiro", "suspicion": "Rodoviário + reincidência moderada",
-        "hours": 11, "transport": "road", "value": 660,
-        "status": "open", "date": date(2026, 3, 8),
-        "justification": "Dois acionamentos rodoviários no trimestre. Rotas diferentes mas com padrão de distância superior a 400km. Em monitoramento.",
-        "factors": {"blocklist": 0, "reincidencia": 15, "transporte": 10, "data": 0},
-        "history": [{"d": date(2026, 1, 12), "t": "Rodoviário · R$ 600"}],
-    },
-    {
-        "name": "Fábio Andrade Rocha", "suspicion": "Aéreo isolado · alto valor",
-        "hours": 19, "transport": "air", "value": 3050,
-        "status": "open", "date": date(2026, 2, 25),
-        "justification": "Primeiro acionamento com valor acima da média para passagem aérea. Sem histórico anterior. Análise preventiva em andamento.",
-        "factors": {"blocklist": 0, "reincidencia": 0, "transporte": 20, "data": 0},
-        "history": [],
-    },
-    {
-        "name": "Tatiane Borges Oliveira", "suspicion": "Táxi + reincidência moderada",
-        "hours": 5.5, "transport": "taxi", "value": 320,
-        "status": "released", "date": date(2026, 2, 18),
-        "justification": "Dois acionamentos de táxi no bimestre. Valores compatíveis com distâncias declaradas. Documentação aprovada. Liberado.",
-        "factors": {"blocklist": 0, "reincidencia": 15, "transporte": 0, "data": 0},
-        "history": [{"d": date(2026, 1, 3), "t": "Táxi · R$ 280"}],
-    },
-    {
-        "name": "Henrique Vasconcelos Cruz", "suspicion": "Rodoviário · alto valor + data",
-        "hours": 13.5, "transport": "road", "value": 920,
-        "status": "open", "date": date(2026, 2, 12),
-        "justification": "Acionamento próximo ao Carnaval com valor acima do padrão para transporte rodoviário. Primeiro acionamento mas com valor atípico.",
-        "factors": {"blocklist": 0, "reincidencia": 0, "transporte": 10, "data": 10},
-        "history": [],
-    },
-    {
-        "name": "Simone Cardoso Baptista", "suspicion": "Aéreo + data Carnaval",
-        "hours": 15, "transport": "air", "value": 2480,
-        "status": "denied", "date": date(2026, 3, 5),
-        "justification": "Passagem aérea durante o Carnaval sem comprovação de sinistro válido. Destino não corresponde à residência. Negado após investigação.",
-        "factors": {"blocklist": 0, "reincidencia": 0, "transporte": 20, "data": 10},
-        "history": [],
-    },
-    {
-        "name": "Leandro Figueiredo Santos", "suspicion": "Reincidência máxima sem blocklist",
-        "hours": 10, "transport": "road", "value": 780,
-        "status": "open", "date": date(2026, 1, 28),
-        "justification": "Quarto acionamento rodoviário no período. Padrão altamente suspeito mesmo sem constar na block list. Encaminhado para análise especial.",
-        "factors": {"blocklist": 0, "reincidencia": 25, "transporte": 10, "data": 0},
-        "history": [
-            {"d": date(2025, 11, 10), "t": "Rodoviário · R$ 700"},
-            {"d": date(2025, 8, 5), "t": "Rodoviário · R$ 650"},
-            {"d": date(2025, 5, 18), "t": "Táxi · R$ 350"},
-        ],
-    },
-    {
-        "name": "Priscila Menezes Costa", "suspicion": "Táxi · primeiro acionamento",
-        "hours": 4.5, "transport": "taxi", "value": 280,
-        "status": "released", "date": date(2026, 1, 20),
-        "justification": "Primeiro acionamento com táxi. Valor e distância coerentes. Documentação completa. Aprovado sem ressalvas.",
-        "factors": {"blocklist": 0, "reincidencia": 0, "transporte": 0, "data": 0},
-        "history": [],
-    },
-    {
-        "name": "Rodrigo Albuquerque Lima", "suspicion": "Aéreo + reincidência + data suspeita",
-        "hours": 16.5, "transport": "air", "value": 2920,
-        "status": "open", "date": date(2026, 1, 2),
-        "justification": "Acionamento logo após o Ano Novo com passagem aérea e histórico de duas ocorrências anteriores. Perfil de alto risco em análise.",
-        "factors": {"blocklist": 0, "reincidencia": 15, "transporte": 20, "data": 10},
-        "history": [
-            {"d": date(2025, 9, 15), "t": "Aéreo · R$ 2.700"},
-            {"d": date(2025, 4, 22), "t": "Rodoviário · R$ 580"},
+        "name": "Wendell Carvalho Dias", "dob": date(1987, 4, 16),
+        "reasons": [
+            "Veículo encontrado em perfeito estado após acionamento de pane",
+            "Reincidência com 6 acionamentos em 18 meses — padrão atípico",
         ],
     },
 ]
 
+# ── Pool de nomes (clientes sem blocklist) ────────────────────
+CLIENT_NAME_POOL = [
+    "Ana Paula Gomes", "Carlos Eduardo Pinto", "Luís Henrique Ramos",
+    "Fernanda Melo Castro", "Ricardo Souza Barros", "Mariana Lopes Vieira",
+    "Juliana Ferreira Dias", "Thiago Nascimento Reis", "Beatriz Almeida Cruz",
+    "Alexandre Cunha Torres", "Diego Rocha Ferreira", "Isabela Fontes Martins",
+    "Gustavo Mendes Araújo", "Larissa Campos Duarte", "Eduardo Pires Nogueira",
+    "Vanessa Lima Teixeira", "Bruno Cavalcante Mota", "Renata Souza Monteiro",
+    "Fábio Andrade Rocha", "Tatiane Borges Oliveira", "Henrique Vasconcelos Cruz",
+    "Simone Cardoso Baptista", "Leandro Figueiredo Santos", "Priscila Menezes Costa",
+    "Rodrigo Albuquerque Lima", "Juliane Barros Martins", "Andressa Pimentel Cardoso",
+    "Vinicius Teixeira Araujo", "Marcos Aurélio Batista", "Silvana Ramos Ferraz",
+    "Diogo Pereira Brandão", "Carolina Assunção Lima", "Fabiana Nogueira Gomes",
+    "Rafael Carvalho Siqueira", "Luciana Prado Mendes",
+]
 
-# ── Distribuição aleatória e estratificada das datas ──────────
-# Em vez de usar datas fixas (que ficam "velhas" com o tempo) ou um deslocamento
-# fixo a partir de uma âncora (que sempre produz a mesma divisão por filtro),
-# sorteamos uma data para cada caso dentro de 3 faixas:
-#   ~60% dentro da semana atual          -> aparecem no filtro "Semana atual"
-#   ~20% no restante do mês atual        -> somados aos da semana, ~80% no "Mês atual"
-#   ~20% em meses anteriores             -> mantém "Todos os casos" com histórico variado
-# O sorteio é embaralhado a cada execução do seed, então quais casos (e,
-# consequentemente, quais status) caem em cada janela muda a cada rodada —
-# evitando o padrão artificial de "sempre os mesmos números" por filtro.
+# ── Helpers de transporte e valor ─────────────────────────────
+TRANSPORT_VALUE_FACTOR = {"taxi": 1.8, "road": 0.8, "air": 2.0}
+TRANSPORT_LABELS      = {"taxi": "Táxi", "road": "Rodoviário", "air": "Aéreo"}
 
-def _random_date(start: date, end: date) -> date:
-    if start > end:
-        start, end = end, start
-    return start + timedelta(days=random.randint(0, (end - start).days))
+def _suggest_transport(hours: float) -> str:
+    if hours <= 8:
+        return "taxi"
+    if hours >= 15:
+        return "air"
+    return "road"
 
+def _calc_value(hours: float, transport: str) -> float:
+    return round(hours * 80 * TRANSPORT_VALUE_FACTOR[transport], 2)
 
-def _build_date_pool(n: int) -> list[date]:
+# ── Templates de justificativa ────────────────────────────────
+_JUSTIFS = {
+    "blocklist": [
+        "Cliente consta na block list com histórico de fraude confirmada. "
+        "Acionamento negado preventivamente pelo sistema de monitoramento.",
+        "Reincidente na block list. Documentação apresentada contém inconsistências "
+        "com registros anteriores. Caso encaminhado para auditoria.",
+        "Cliente em block list por conluio comprovado. Sinistro segue padrão idêntico "
+        "a ocorrências anteriores já negadas.",
+    ],
+    "air_reinc": [
+        "Passagem aérea com valor elevado e reincidência identificada. Destino não "
+        "corresponde à residência cadastrada. Aguardando comprovação documental.",
+        "Terceiro acionamento aéreo no período. Valor acima da média histórica do "
+        "perfil. Encaminhado para análise prioritária.",
+        "Acionamento aéreo em período de alta temporada com histórico de reincidência. "
+        "Padrão de uso suspeito identificado pelo sistema.",
+    ],
+    "road_reinc": [
+        "Múltiplos acionamentos rodoviários em rotas distintas. Padrão consistente "
+        "com uso indevido do benefício. Em análise.",
+        "Segundo acionamento rodoviário no trimestre com distância acima de 400km. "
+        "Score elevado por reincidência identificada.",
+        "Acionamento rodoviário com carga atípica relatada pelo operador. "
+        "Documentação em revisão para validação.",
+    ],
+    "taxi_reinc": [
+        "Terceiro acionamento de táxi no bimestre. Frequência suspeita detectada "
+        "pelo sistema de monitoramento. Análise em andamento.",
+        "Acionamento de táxi com histórico de reincidência. Valor dentro do esperado, "
+        "porém padrão de uso monitorado.",
+    ],
+    "holiday": [
+        "Sinistro registrado em véspera de feriado nacional — fator de risco "
+        "automático ativado. Documentação solicitada ao cliente.",
+        "Acionamento durante período de feriado prolongado. Padrão coincidente com "
+        "histórico de usos suspeitos na base.",
+        "Data suspeita: feriado nacional. Sinistro sem boletim de ocorrência imediato. "
+        "Em análise documental.",
+    ],
+    "air_only": [
+        "Passagem aérea como fator de risco principal. Sem histórico anterior. "
+        "Monitoramento preventivo ativado para este perfil.",
+        "Primeiro acionamento com passagem aérea. Documentação em análise pelo time "
+        "de prevenção a fraudes.",
+    ],
+    "generic": [
+        "Acionamento com características de risco moderado. Documentação em análise "
+        "pelo time de investigação.",
+        "Perfil com fatores de risco pontuais identificados. Monitoramento preventivo "
+        "ativado conforme protocolo.",
+        "Score acima do limiar de monitoramento. Caso em análise padrão pelo time "
+        "de prevenção a fraudes.",
+        "Fatores de risco identificados automaticamente. Análise manual em andamento "
+        "para validação.",
+        "Acionamento com combinação de fatores que ativa monitoramento especial. "
+        "Aguardando documentação complementar.",
+    ],
+}
+
+def _pick_justification(is_bl: bool, transport: str, near_hol: bool, reinc_pts: int) -> str:
+    if is_bl:
+        return random.choice(_JUSTIFS["blocklist"])
+    if transport == "air" and reinc_pts >= 10:
+        return random.choice(_JUSTIFS["air_reinc"])
+    if transport == "road" and reinc_pts >= 10:
+        return random.choice(_JUSTIFS["road_reinc"])
+    if transport == "taxi" and reinc_pts >= 10:
+        return random.choice(_JUSTIFS["taxi_reinc"])
+    if near_hol:
+        return random.choice(_JUSTIFS["holiday"])
+    if transport == "air":
+        return random.choice(_JUSTIFS["air_only"])
+    return random.choice(_JUSTIFS["generic"])
+
+def _build_suspicion(is_bl: bool, reinc_pts: int, transport: str, near_hol: bool) -> str:
+    parts = []
+    if is_bl:
+        parts.append(("Cliente consta na block list", 45))
+    if reinc_pts > 0:
+        parts.append(("Indícios de reincidência identificados", reinc_pts))
+    tr_pts = {"air": 20, "road": 10, "taxi": 0}.get(transport, 0)
+    if tr_pts > 0:
+        parts.append((f"Transporte {TRANSPORT_LABELS[transport]} (fator de risco)", tr_pts))
+    if near_hol:
+        parts.append(("Acionamento próximo a data de feriado nacional", 10))
+    parts.sort(key=lambda x: x[1], reverse=True)
+    return " · ".join(p[0] for p in parts) if parts else "Monitoramento preventivo"
+
+# ── Feriados nacionais (mesmo conjunto do score.py) ───────────
+_NATIONAL_HOLIDAYS = {
+    (1, 1), (4, 21), (5, 1), (9, 7), (10, 12),
+    (11, 2), (11, 15), (12, 25),
+    (4, 18), (4, 19), (3, 4), (3, 5),
+    (4, 3), (4, 5),
+}
+
+def _is_near_holiday(d: date) -> bool:
+    for delta in range(-3, 4):
+        check = d + timedelta(days=delta)
+        if (check.month, check.day) in _NATIONAL_HOLIDAYS:
+            return True
+    return False
+
+# ── Geração das 80 datas ──────────────────────────────────────
+def _build_date_slots() -> list[date]:
+    """
+    80 casos ao longo de 45 dias (hoje-44 até hoje).
+
+    Regras:
+      - Todos os 45 dias têm pelo menos 1 caso (1-3 por dia).
+      - 80% dos casos ficam nos últimos 30 dias  → 64 casos.
+      - 20% ficam nos dias 31-45 atrás           → 16 casos.
+      - Os 35 casos extras são distribuídos para respeitar essa proporção.
+    """
     today = date.today()
-    month_start = today.replace(day=1)
-    monday = today - timedelta(days=today.weekday())
+    all_days = [today - timedelta(days=44 - i) for i in range(45)]   # 45 dias ordenados
 
-    n_week = round(n * 0.6)
-    n_month_only = round(n * 0.2)
-    n_older = n - n_week - n_month_only
+    older_days  = all_days[:15]   # dias 44 a 30 atrás  (zona 20%)
+    recent_days = all_days[15:]   # dias 29 a 0  atrás  (zona 80%)
 
-    week_start = max(monday, month_start)
-    month_only_start = month_start
-    month_only_end = week_start - timedelta(days=1)
-    older_end = month_start - timedelta(days=1)
-    older_start = month_start - timedelta(days=180)
+    # Base: 1 por dia = 45 slots
+    slots: list[date] = all_days[:]
 
-    pool: list[date] = []
-    pool += [_random_date(week_start, today) for _ in range(n_week)]
-    if month_only_end >= month_only_start:
-        pool += [_random_date(month_only_start, month_only_end) for _ in range(n_month_only)]
-    else:
-        # Início do mês: não há "resto do mês" antes da semana atual — usa a própria semana
-        pool += [_random_date(week_start, today) for _ in range(n_month_only)]
-    pool += [_random_date(older_start, older_end) for _ in range(n_older)]
+    # Extras necessários: older 16-15=1 / recent 64-30=34
+    extra_older  = 16 - len(older_days)   # = 1
+    extra_recent = 64 - len(recent_days)  # = 34
 
-    random.shuffle(pool)
-    return pool
+    slots += [random.choice(older_days)  for _ in range(extra_older)]
+    slots += [random.choice(recent_days) for _ in range(extra_recent)]
+
+    # Validação: nunca mais de 3 por dia
+    from collections import Counter
+    counts = Counter(slots)
+    for d, cnt in counts.items():
+        while counts[d] > 3:
+            # Mover excesso para outro dia da mesma zona
+            pool = recent_days if d >= (today - timedelta(days=29)) else older_days
+            new_day = random.choice([x for x in pool if counts[x] < 3] or pool)
+            slots[slots.index(d)] = new_day
+            counts[d] -= 1
+            counts[new_day] += 1
+
+    slots.sort()
+    return slots  # 80 datas ordenadas do mais antigo ao mais recente
+
+# ── Distribuição de status ────────────────────────────────────
+def _assign_statuses(n: int) -> list[str]:
+    """
+    - 5% em andamento (open) — sempre os mais recentes.
+    - Do restante: 52-60% liberados, 40-48% negados.
+    - O embaralhamento garante variação de proporção entre os filtros.
+    """
+    n_open    = max(1, round(n * 0.05))   # 4
+    n_closed  = n - n_open                # 76
+
+    # Sorteio da quantidade de liberados (varia a cada execução)
+    n_released = random.randint(round(n * 0.52), round(n * 0.60))
+    n_denied   = n_closed - n_released
+
+    closed = ["released"] * n_released + ["denied"] * n_denied
+    random.shuffle(closed)   # embaralha para variar ratio por janela de filtro
+
+    # Os n_open mais recentes (índices finais) ficam como open
+    result = closed[:n_closed] + ["open"] * n_open
+    return result   # alinhado com slots já ordenados (antigo → recente)
+
+# ── Objeto auxiliar para calculate_score ─────────────────────
+class _FactorInput:
+    def __init__(self, blocklist: int, reincidencia: int):
+        self.blocklist   = blocklist
+        self.reincidencia = reincidencia
+        self.transporte  = 0   # recalculado pelo score.py a partir do transport
+        self.data        = 0   # recalculado pelo score.py a partir da data
 
 
+# ── Seed principal ────────────────────────────────────────────
 def seed():
     db = SessionLocal()
     try:
-        # Clear existing data
+        # ── Limpeza ──────────────────────────────────────────
         db.query(models.CaseHistory).delete()
         db.query(models.CaseFactor).delete()
         db.query(models.Case).delete()
@@ -390,7 +339,7 @@ def seed():
         db.query(models.Blocklist).delete()
         db.commit()
 
-        # Seed blocklist
+        # ── Blocklist ─────────────────────────────────────────
         for b in BLOCKLIST_SEED:
             entry = models.Blocklist(
                 name=b["name"],
@@ -402,50 +351,111 @@ def seed():
             for r in b["reasons"]:
                 db.add(models.BlocklistReason(blocklist_id=entry.id, reason=r))
         db.commit()
-        print(f"✓ Blocklist: {len(BLOCKLIST_SEED)} entries inserted")
+        print(f"✓ Blocklist: {len(BLOCKLIST_SEED)} entradas inseridas")
 
-        # Seed cases
-        blocklist_names = {b["name"].lower() for b in BLOCKLIST_SEED}
+        # ── Cases ─────────────────────────────────────────────
+        blocklist_names     = {b["name"].lower() for b in BLOCKLIST_SEED}
+        blocklist_name_list = [b["name"] for b in BLOCKLIST_SEED]
 
-        class FactorsObj:
-            def __init__(self, d):
-                self.blocklist = d["blocklist"]
-                self.reincidencia = d["reincidencia"]
-                self.transporte = d["transporte"]
-                self.data = d["data"]
+        date_slots = _build_date_slots()    # 80 datas
+        statuses   = _assign_statuses(len(date_slots))  # 80 status
 
-        date_pool = _build_date_pool(len(CASES_SEED))
+        # Valores de horas possíveis (0.5 em 0.5, de 4.5 a 20)
+        hour_options = [x / 2 for x in range(9, 41)]
 
-        for c, case_date in zip(CASES_SEED, date_pool):
-            offset = case_date - c["date"]
-            in_bl = c["name"].lower() in blocklist_names
-            f_obj = FactorsObj(c["factors"])
-            score, computed = calculate_score(db, c["name"], c["transport"], case_date, f_obj, in_bl)
+        for case_date, status in zip(date_slots, statuses):
+            # ── Nome ──────────────────────────────────────────
+            # ~15% de chance de ser um cliente da blocklist
+            if random.random() < 0.15:
+                name = random.choice(blocklist_name_list)
+            else:
+                name = random.choice(CLIENT_NAME_POOL)
 
+            is_bl = name.lower() in blocklist_names
+
+            # ── Perfil de viagem ──────────────────────────────
+            hours     = random.choice(hour_options)
+            transport = _suggest_transport(hours)
+            value     = _calc_value(hours, transport)
+            near_hol  = _is_near_holiday(case_date)
+
+            # ── Fator de reincidência ──────────────────────────
+            # Clientes da blocklist têm maior probabilidade de reincidência
+            if is_bl:
+                reinc_pts = random.choices([15, 25], weights=[0.45, 0.55])[0]
+            else:
+                reinc_pts = random.choices([0, 10, 15, 25], weights=[0.40, 0.25, 0.22, 0.13])[0]
+
+            # Garantia: pelo menos um fator de risco deve existir
+            tr_pts = {"air": 20, "road": 10, "taxi": 0}[transport]
+            if not is_bl and reinc_pts == 0 and tr_pts == 0 and not near_hol:
+                reinc_pts = 10
+
+            # ── Suspicion e justificativa ─────────────────────
+            suspicion     = _build_suspicion(is_bl, reinc_pts, transport, near_hol)
+            justification = _pick_justification(is_bl, transport, near_hol, reinc_pts)
+
+            # ── Score ─────────────────────────────────────────
+            f_input = _FactorInput(45 if is_bl else 0, reinc_pts)
+            score, computed = calculate_score(db, name, transport, case_date, f_input, is_bl)
+
+            # ── Histórico de acionamentos anteriores ──────────
+            hist_count = random.choices([0, 1, 2], weights=[0.50, 0.35, 0.15])[0]
+            history_entries = []
+            for _ in range(hist_count):
+                days_back = random.randint(45, 400)
+                h_date      = case_date - timedelta(days=days_back)
+                h_transport = random.choice(["Táxi", "Rodoviário", "Aéreo"])
+                h_factor    = {"Táxi": 1.8, "Rodoviário": 0.8, "Aéreo": 2.0}[h_transport]
+                h_hours     = random.choice(hour_options)
+                h_value     = int(round(h_hours * 80 * h_factor))
+                h_value_str = f"R$ {h_value:,}".replace(",", ".")
+                history_entries.append((h_date, f"{h_transport} · {h_value_str}"))
+
+            # ── Persistência ──────────────────────────────────
             case = models.Case(
-                name=c["name"],
-                initials=generate_initials(c["name"]),
+                name=name,
+                initials=generate_initials(name),
                 col=generate_color(),
-                suspicion=c["suspicion"],
-                hours=c["hours"],
-                transport=c["transport"],
-                value=c["value"],
+                suspicion=suspicion,
+                hours=hours,
+                transport=transport,
+                value=value,
                 score=score,
-                status=c["status"],
+                status=status,
                 date=case_date,
-                justification=c.get("justification"),
+                justification=justification,
             )
             db.add(case)
             db.flush()
 
             db.add(models.CaseFactor(case_id=case.id, **computed))
-
-            for h in c.get("history", []):
-                db.add(models.CaseHistory(case_id=case.id, d=h["d"] + offset, t=h["t"]))
+            for h_date, h_text in history_entries:
+                db.add(models.CaseHistory(case_id=case.id, d=h_date, t=h_text))
 
         db.commit()
-        print(f"✓ Cases: {len(CASES_SEED)} cases inserted")
-        print("Seed complete.")
+
+        # ── Resumo ────────────────────────────────────────────
+        today  = date.today()
+        last7  = today - timedelta(days=6)
+        last30 = today - timedelta(days=29)
+        n      = len(date_slots)
+        n_last30  = sum(1 for d in date_slots if d >= last30)
+        n_last7   = sum(1 for d in date_slots if d >= last7)
+        n_open    = statuses.count("open")
+        n_released = statuses.count("released")
+        n_denied  = statuses.count("denied")
+
+        print(f"✓ Cases: {n} casos inseridos")
+        print(f"  → Todos os casos : {n}")
+        print(f"  → Últimos 30 dias: {n_last30} ({round(n_last30 / n * 100)}%)")
+        print(f"  → Últimos 7 dias : {n_last7}")
+        print(f"  → Em andamento   : {n_open}  ({round(n_open / n * 100)}%)")
+        print(f"  → Liberados      : {n_released} ({round(n_released / n * 100)}%)")
+        print(f"  → Negados        : {n_denied} ({round(n_denied / n * 100)}%)")
+        print(f"  → Caso mais antigo: {date_slots[0].strftime('%d/%m/%Y')}")
+        print(f"  → Caso mais recente: {date_slots[-1].strftime('%d/%m/%Y')}")
+        print("Seed concluído.")
 
     finally:
         db.close()
