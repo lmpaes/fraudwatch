@@ -206,10 +206,9 @@ def get_charts(db: Session, filter: str = "all") -> dict:
         vals = [float(c.value) for c in cases if c.transport.value == t]
         return round(sum(vals) / len(vals), 2) if vals else 0.0
 
-    # Weekly timeline — last 8 weeks
+    # Timeline: janela e granularidade adaptam-se ao filtro ativo
     from datetime import date, timedelta
     today = date.today()
-    monday = today - timedelta(days=today.weekday())
     NATIONAL_HOLIDAYS = {
         (1, 1), (4, 21), (5, 1), (9, 7), (10, 12),
         (11, 2), (11, 15), (12, 25), (4, 18), (4, 19),
@@ -217,17 +216,42 @@ def get_charts(db: Session, filter: str = "all") -> dict:
     }
 
     timeline = []
-    for i in range(7, -1, -1):
-        week_start = monday - timedelta(weeks=i)
-        week_end = week_start + timedelta(days=6)
-        count = sum(1 for c in cases if week_start <= c.date <= week_end)
-        has_holiday = any(
-            (check.month, check.day) in NATIONAL_HOLIDAYS
-            for j in range(7)
-            for check in [week_start + timedelta(days=j)]
-        )
-        label = week_start.strftime("Sem %d/%m")
-        timeline.append({"week": label, "count": count, "holiday": has_holiday})
+
+    if filter == "week":
+        # Últimos 7 dias → 1 ponto por dia
+        for i in range(6, -1, -1):
+            day = today - timedelta(days=i)
+            count = sum(1 for c in cases if c.date == day)
+            has_holiday = (day.month, day.day) in NATIONAL_HOLIDAYS
+            timeline.append({"week": day.strftime("%d/%m"), "count": count, "holiday": has_holiday})
+
+    elif filter == "month":
+        # Últimos 30 dias → buckets de 7 dias a partir de hoje-29
+        bucket = today - timedelta(days=29)
+        while bucket <= today:
+            bucket_end = bucket + timedelta(days=6)
+            count = sum(1 for c in cases if bucket <= c.date <= bucket_end)
+            has_holiday = any(
+                (check.month, check.day) in NATIONAL_HOLIDAYS
+                for j in range(7)
+                for check in [bucket + timedelta(days=j)]
+            )
+            timeline.append({"week": bucket.strftime("%d/%m"), "count": count, "holiday": has_holiday})
+            bucket += timedelta(days=7)
+
+    else:
+        # Todos os casos → janela rolante de 45 dias, buckets de 7 dias
+        bucket = today - timedelta(days=45)
+        while bucket <= today:
+            bucket_end = bucket + timedelta(days=6)
+            count = sum(1 for c in cases if bucket <= c.date <= bucket_end)
+            has_holiday = any(
+                (check.month, check.day) in NATIONAL_HOLIDAYS
+                for j in range(7)
+                for check in [bucket + timedelta(days=j)]
+            )
+            timeline.append({"week": bucket.strftime("%d/%m"), "count": count, "holiday": has_holiday})
+            bucket += timedelta(days=7)
 
     return {
         "transport": {"taxi": taxi, "road": road, "air": air},
