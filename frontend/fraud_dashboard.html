@@ -67,9 +67,11 @@ button{cursor:pointer;font-family:var(--font-body)}
 .timestamp{font-size:11px;color:var(--muted)}
 
 /* LAYOUT */
-.app-body{display:flex;min-height:calc(100vh - 64px)}
-.main-content{flex:1;min-width:0;padding:36px 40px;display:flex;flex-direction:column;gap:32px;transition:margin-right .3s}
+.app-body{display:flex;height:calc(100vh - 64px)}
+.main-content{flex:1;min-width:0;padding:36px 40px;display:flex;flex-direction:column;gap:32px;transition:margin-right .3s;overflow-y:auto}
 .main-content.sidebar-open{margin-right:400px}
+.main-content.block-view{overflow:hidden}
+#page-block{flex:1;min-height:0;overflow:hidden}
 
 /* SIDEBAR */
 .sidebar{
@@ -139,7 +141,7 @@ button{cursor:pointer;font-family:var(--font-body)}
 
 /* FILTERS ROW */
 .filters-row{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px}
-.section-head{}
+.section-head{display:flex;flex-direction:column}
 .section-title{font-family:var(--font-head);font-size:24px;font-weight:800;color:var(--txt);letter-spacing:-.01em}
 .section-sub{font-size:13px;color:var(--muted);margin-top:6px}
 .filter-tabs{
@@ -159,15 +161,15 @@ button{cursor:pointer;font-family:var(--font-body)}
   display:flex;background:var(--card);
   border:1px solid var(--border);border-radius:16px;overflow:hidden;overflow-x:auto;
 }
-.kpi-col{flex:1;padding:20px 24px;display:flex;flex-direction:column;gap:4px;min-width:110px}
-.kpi-col-wide{flex:1.3}
+.kpi-col{flex:1;padding:20px 20px;display:flex;flex-direction:column;gap:4px;min-width:90px}
+.kpi-col-wide{flex:2;min-width:200px}
 .kpi-col-accent{background:#00E67608}
 .kpi-divider-v{width:1px;background:var(--border);flex-shrink:0}
 .kpi-col-label{
   font-size:10px;font-weight:700;text-transform:uppercase;
   letter-spacing:.09em;color:var(--muted);
 }
-.kpi-col-value{font-family:var(--font-mono);font-size:32px;font-weight:700;line-height:1.1}
+.kpi-col-value{font-family:var(--font-mono);font-size:32px;font-weight:700;line-height:1.1;white-space:nowrap}
 .kpi-col-meta{font-size:11px;color:var(--muted)}
 
 /* CHARTS */
@@ -267,61 +269,144 @@ button{cursor:pointer;font-family:var(--font-body)}
 }
 .value-cell{font-weight:600;color:var(--amber);font-family:var(--font-mono)}
 
-/* BLOCK LIST */
+/* BLOCK LIST — two-column layout */
+.bl-layout{
+  flex:1;min-height:0;
+  display:flex;gap:24px;
+}
+.bl-left-panel{
+  flex:1;min-width:0;min-height:0;
+  display:flex;flex-direction:column;
+}
+.bl-right-panel{
+  width:360px;flex-shrink:0;
+  display:flex;flex-direction:column;gap:16px;
+}
+
+/* Left card — list */
 .bl-card{
   background:var(--card);border:1px solid var(--border);
-  border-radius:16px;overflow:hidden;
+  border-radius:16px;
+  flex:1;min-height:0;
+  display:flex;flex-direction:column;overflow:hidden;
 }
 .bl-header{
-  padding:20px 28px;border-bottom:1px solid var(--border);
-  display:flex;align-items:center;justify-content:space-between;
+  padding:22px 30px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;flex-shrink:0;
 }
-.bl-title{font-family:var(--font-head);font-size:14px;font-weight:700;display:flex;align-items:center;gap:7px}
-.bl-title i{font-size:16px;color:var(--red)}
-.bl-badge{
-  font-size:11px;font-weight:700;color:var(--red);
-  background:#FF4C4C18;border:1px solid #FF4C4C33;
-  padding:4px 12px;border-radius:5px;
+.bl-title{font-family:var(--font-head);font-size:16px;font-weight:700;display:flex;align-items:center;gap:8px}
+.bl-title i{font-size:18px;color:var(--red)}
+.bl-body-wrap{
+  flex:1;min-height:0;
+  overflow-y:auto;
+  scrollbar-color:#FF4C4C44 #13161F;scrollbar-width:thin;
 }
-.bl-row{
-  border-bottom:1px solid var(--border);padding:20px 28px;
-  display:grid;grid-template-columns:46px 1fr 1fr auto;
-  align-items:start;gap:20px;transition:background .14s;
+.bl-body-wrap::-webkit-scrollbar{width:7px}
+.bl-body-wrap::-webkit-scrollbar-track{background:#13161F}
+.bl-body-wrap::-webkit-scrollbar-thumb{background:#FF4C4C55;border-radius:3px}
+.bl-body-wrap::-webkit-scrollbar-thumb:hover{background:#FF4C4C88}
+
+/* Dossier cards */
+.bl-dossier{
+  border-bottom:1px solid var(--border);padding:20px 30px;
+  transition:background .14s;
 }
-.bl-actions{display:flex;gap:6px;align-items:center;flex-shrink:0}
+.bl-dossier:last-child{border-bottom:none}
+.bl-dossier:hover{background:#1D2032}
+.bl-dossier-head{display:flex;align-items:center;gap:16px}
+.bl-dossier-info{flex:1;min-width:0}
+.bl-dossier-meta{display:flex;flex-direction:column;align-items:flex-end;gap:9px;flex-shrink:0}
+.bl-motivo-badge{
+  font-size:12px;font-weight:700;
+  color:var(--red);background:#FF4C4C18;border:1px solid #FF4C4C33;
+  padding:4px 11px;border-radius:5px;white-space:nowrap;
+}
+.bl-dossier-body{
+  margin-top:14px;padding-left:70px;
+}
+.bl-motivo-list{
+  list-style:none;counter-reset:motivo;
+  display:flex;flex-direction:column;gap:8px;
+}
+.bl-motivo-item{
+  display:flex;align-items:flex-start;gap:10px;
+  font-size:14px;color:#FF8888;
+  counter-increment:motivo;
+}
+.bl-motivo-item::before{
+  content:counter(motivo);
+  font-family:var(--font-mono);font-size:12px;font-weight:700;
+  color:var(--muted);min-width:14px;margin-top:2px;flex-shrink:0;
+}
+.bl-motivo-marker{
+  width:8px;height:8px;border-radius:1px;
+  background:var(--red);flex-shrink:0;margin-top:4px;
+}
+
+/* Shared atoms */
+.bl-actions{display:flex;gap:7px;align-items:center}
 .bl-btn{
   background:none;border:1px solid var(--border);border-radius:7px;
-  color:var(--muted);padding:5px 8px;font-size:13px;
+  color:var(--muted);padding:7px 10px;font-size:15px;
   display:flex;align-items:center;transition:all .15s;
 }
 .bl-btn:hover{color:var(--txt);border-color:var(--border-hover);background:var(--card)}
 .bl-btn.danger:hover{color:var(--red);border-color:#FF4C4C44;background:#FF4C4C0E}
-.bl-row:last-child{border-bottom:none}
-.bl-row:hover{background:#1D2032}
 .bl-avatar{
-  width:46px;height:46px;border-radius:50%;
+  width:52px;height:52px;border-radius:50%;
   background:#FF4C4C18;border:1.5px solid #FF4C4C44;
   display:flex;align-items:center;justify-content:center;
-  font-size:12px;font-weight:800;color:var(--red);flex-shrink:0;
+  font-size:13px;font-weight:800;color:var(--red);flex-shrink:0;
 }
-.bl-name{font-weight:600;font-size:14px;color:var(--txt);margin-bottom:5px}
-.bl-dob{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:4px}
-.bl-dob i{font-size:11px}
-.bl-reasons{display:flex;flex-direction:column;gap:6px}
-.bl-reason{
-  font-size:10px;background:#FF4C4C0E;border:1px solid #FF4C4C2A;
-  color:#FF8888;padding:4px 10px;border-radius:4px;
-  display:inline-block;max-width:fit-content;line-height:1.4;
+.bl-name{font-weight:600;font-size:17px;color:var(--txt);margin-bottom:6px}
+.bl-dob{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:5px}
+.bl-dob i{font-size:13px}
+.bl-empty{
+  padding:48px 30px;text-align:center;font-size:15px;color:var(--muted);
 }
 
-/* ALERT */
-.alert-banner{
-  background:#FF4C4C12;border:1px solid #FF4C4C33;
-  border-radius:12px;padding:16px 20px;
-  display:flex;align-items:center;gap:14px;
-  font-size:13px;color:#FFB3B3;line-height:1.6;
+/* Right panel cards */
+.bl-count-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:16px;padding:30px 24px;
+  text-align:center;flex-shrink:0;
 }
-.alert-banner i{font-size:20px;color:var(--red);flex-shrink:0}
+.bl-count-num{
+  font-family:var(--font-mono);font-size:66px;font-weight:800;
+  color:var(--red);line-height:1;margin-bottom:10px;
+}
+.bl-count-label{font-size:14px;color:var(--muted);font-weight:500}
+.bl-search-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:16px;padding:22px 24px;flex-shrink:0;
+}
+.bl-right-card-label{
+  font-size:11px;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:12px;
+}
+.bl-search-wrap{position:relative;display:flex;align-items:center}
+.bl-search-icon{
+  position:absolute;left:14px;font-size:16px;color:var(--muted);pointer-events:none;
+}
+.bl-search-input{
+  width:100%;background:var(--bg);border:1px solid var(--border);
+  border-radius:8px;padding:10px 14px 10px 38px;
+  font-size:14px;color:var(--txt);outline:none;transition:border-color .15s;
+}
+.bl-search-input::placeholder{color:var(--muted)}
+.bl-search-input:focus{border-color:var(--border-hover)}
+.bl-alert-card{
+  background:#FF4C4C12;border:1px solid #FF4C4C33;
+  border-radius:16px;padding:24px;
+  flex-shrink:0;
+}
+.bl-alert-title{
+  font-family:var(--font-head);font-size:14px;font-weight:700;
+  color:var(--red);display:flex;align-items:center;gap:8px;margin-bottom:14px;
+}
+.bl-alert-title i{font-size:18px}
+.bl-alert-body{font-size:13px;color:#FFB3B3;line-height:1.75}
+.bl-alert-body strong{color:var(--red);font-weight:700}
 
 /* ACTION BUTTONS */
 .btn-primary{
@@ -336,6 +421,14 @@ button{cursor:pointer;font-family:var(--font-body)}
   display:flex;align-items:center;gap:6px;transition:all .15s;
 }
 .btn-danger:hover{background:#FF4C4C33}
+.btn-danger-primary{
+  background:linear-gradient(135deg,#FF4C4C30,#FF4C4C18);
+  color:var(--red);border:1px solid #FF4C4C55;
+  padding:8px 16px;border-radius:8px;font-size:12px;font-weight:600;
+  display:flex;align-items:center;gap:6px;transition:all .15s;
+  box-shadow:0 2px 10px #FF4C4C20;
+}
+.btn-danger-primary:hover{background:linear-gradient(135deg,#FF4C4C44,#FF4C4C28);box-shadow:0 4px 16px #FF4C4C33}
 .btn-outline{
   background:none;color:var(--muted);border:1px solid var(--border);
   padding:7px 14px;border-radius:8px;font-size:12px;font-weight:500;
@@ -379,12 +472,15 @@ button{cursor:pointer;font-family:var(--font-body)}
 .form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--blue)}
 .form-select{appearance:none}
 .form-textarea{resize:vertical;min-height:80px}
-.factors-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 
 /* RESPONSIVE */
 @media(max-width:960px){
   .charts-grid{grid-template-columns:1fr 1fr}
-  .bl-row{grid-template-columns:46px 1fr}
+  .bl-layout{flex-direction:column}
+  .bl-right-panel{width:100%;flex-direction:row;flex-wrap:wrap}
+  .bl-count-card{flex:1;min-width:160px}
+  .bl-search-card{flex:2;min-width:240px}
+  .bl-alert-card{flex:100%}
   .main-content.sidebar-open{margin-right:0}
   .main-content{padding:24px 20px}
   .form-row.cols-2{grid-template-columns:1fr}
@@ -415,8 +511,8 @@ button{cursor:pointer;font-family:var(--font-body)}
       </button>
     </div>
     <div class="topbar-divider"></div>
-    <button class="header-action-btn" onclick="exportData('cases','csv')"><i class="ti ti-download"></i> CSV</button>
-    <button class="header-action-btn" onclick="exportData('cases','json')"><i class="ti ti-download"></i> JSON</button>
+    <button class="header-action-btn" onclick="openExportModal('csv')"><i class="ti ti-download"></i> CSV</button>
+    <button class="header-action-btn" onclick="openExportModal('json')"><i class="ti ti-download"></i> JSON</button>
     <button class="header-action-btn" id="btn-toggle-charts" onclick="toggleCharts()"><i class="ti ti-eye-off"></i> Ocultar gráficos</button>
   </div>
   <div class="topbar-right">
@@ -559,22 +655,36 @@ button{cursor:pointer;font-family:var(--font-body)}
           <div class="section-title">Block List</div>
           <div class="section-sub">Clientes com fraude confirmada — novos acionamentos recebem alerta máximo automático</div>
         </div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap">
-          <button class="btn-outline" onclick="exportData('blocklist','csv')"><i class="ti ti-download"></i> Exportar CSV</button>
-          <button class="btn-outline" onclick="exportData('blocklist','json')"><i class="ti ti-download"></i> Exportar JSON</button>
-          <button class="btn-danger" onclick="openBlocklistModal()"><i class="ti ti-ban"></i> Adicionar suspeito</button>
-        </div>
+        <button class="btn-danger-primary" onclick="openBlocklistModal()"><i class="ti ti-ban"></i> Adicionar suspeito</button>
       </div>
-      <div class="alert-banner">
-        <i class="ti ti-alert-triangle"></i>
-        Clientes desta lista iniciam qualquer novo caso com +45 pontos no score de risco (mínimo: Risco Médio). Acionamentos são sinalizados automaticamente para análise prioritária.
-      </div>
-      <div class="bl-card">
-        <div class="bl-header">
-          <div class="bl-title"><i class="ti ti-ban"></i> Clientes bloqueados</div>
-          <span class="bl-badge" id="bl-badge">—</span>
+      <div class="bl-layout">
+        <!-- Painel esquerdo: lista rolável -->
+        <div class="bl-left-panel">
+          <div class="bl-card">
+            <div class="bl-header">
+              <div class="bl-title"><i class="ti ti-ban"></i> Clientes bloqueados</div>
+            </div>
+            <div class="bl-body-wrap"><div id="bl-body"></div></div>
+          </div>
         </div>
-        <div id="bl-body"></div>
+        <!-- Painel direito: fixo -->
+        <div class="bl-right-panel">
+          <div class="bl-count-card">
+            <div class="bl-count-num" id="bl-count-number">—</div>
+            <div class="bl-count-label">clientes bloqueados</div>
+          </div>
+          <div class="bl-search-card">
+            <div class="bl-right-card-label">Buscar</div>
+            <div class="bl-search-wrap">
+              <i class="ti ti-search bl-search-icon"></i>
+              <input class="bl-search-input" id="bl-search" type="text" placeholder="Pesquisar cliente..." oninput="filterBlockList(this.value)">
+            </div>
+          </div>
+          <div class="bl-alert-card">
+            <div class="bl-alert-title"><i class="ti ti-alert-triangle"></i> Regra automática</div>
+            <div class="bl-alert-body">Clientes desta lista iniciam qualquer novo caso com <strong>+45 pontos</strong> no score de risco (mínimo: Risco Médio). Acionamentos são sinalizados automaticamente para análise prioritária.</div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -668,6 +778,30 @@ button{cursor:pointer;font-family:var(--font-body)}
     <div class="modal-footer">
       <button class="btn-outline" onclick="closeCaseModal()">Cancelar</button>
       <button class="btn-primary" onclick="submitCase()"><i class="ti ti-check"></i> Criar caso</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Escolha de exportação -->
+<div class="modal-overlay" id="modal-export">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <div class="modal-title" id="export-modal-title"><i class="ti ti-download" style="color:var(--blue);margin-right:8px"></i>Exportar</div>
+      <button class="sidebar-close" onclick="closeExportModal()"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:10px">
+      <p style="font-size:13px;color:var(--muted);margin:0 0 4px">Escolha o destino da exportação:</p>
+      <button class="btn-outline" style="justify-content:flex-start;gap:14px;padding:14px 18px;text-align:left" onclick="doExport('cases')">
+        <i class="ti ti-layout-dashboard" style="font-size:18px;color:var(--blue);flex-shrink:0"></i>
+        <div><div style="font-weight:600;color:var(--txt);font-size:13px">Dashboard</div><div style="font-size:11px;color:var(--muted)">Exportar casos suspeitos</div></div>
+      </button>
+      <button class="btn-outline" style="justify-content:flex-start;gap:14px;padding:14px 18px;text-align:left" onclick="doExport('blocklist')">
+        <i class="ti ti-ban" style="font-size:18px;color:var(--red);flex-shrink:0"></i>
+        <div><div style="font-weight:600;color:var(--txt);font-size:13px">Block List</div><div style="font-size:11px;color:var(--muted)">Exportar clientes bloqueados</div></div>
+      </button>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeExportModal()">Cancelar</button>
     </div>
   </div>
 </div>
@@ -1130,39 +1264,85 @@ function showPage(page){
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('page-'+page).classList.add('active');
   document.getElementById('nav-'+page).classList.add('active');
+  const mc = document.getElementById('main-content');
+  if(page==='block') mc.classList.add('block-view');
+  else mc.classList.remove('block-view');
   closeSidebar();
   if(page==='block') loadBlockList();
 }
 
+let _blEntries = [];
+
 async function loadBlockList(){
-  const entries = await api('/api/blocklist');
-  document.getElementById('bl-badge').textContent = entries.length + ' clientes';
+  const raw = await api('/api/blocklist');
+  _blEntries = raw.slice().sort((a,b)=>a.name.localeCompare(b.name,'pt-BR',{sensitivity:'base'}));
+  document.getElementById('bl-count-number').textContent = _blEntries.length;
+  document.getElementById('bl-search').value = '';
+  renderBlockList(_blEntries);
+}
+
+function filterBlockList(q){
+  const term = q.trim().toLowerCase();
+  const filtered = term
+    ? _blEntries.filter(b=>b.name.toLowerCase().includes(term))
+    : _blEntries;
+  renderBlockList(filtered);
+}
+
+function renderBlockList(entries){
+  if(!entries.length){
+    document.getElementById('bl-body').innerHTML = '<div class="bl-empty">Nenhum cliente encontrado.</div>';
+    return;
+  }
   document.getElementById('bl-body').innerHTML = entries.map(b=>`
-    <div class="bl-row">
-      <div class="bl-avatar">${b.initials}</div>
-      <div>
-        <div class="bl-name">${b.name}</div>
-        <div class="bl-dob"><i class="ti ti-calendar"></i>${b.dob}</div>
+    <div class="bl-dossier">
+      <div class="bl-dossier-head">
+        <div class="bl-avatar">${b.initials}</div>
+        <div class="bl-dossier-info">
+          <div class="bl-name">${b.name}</div>
+          <div class="bl-dob"><i class="ti ti-calendar"></i>${b.dob}</div>
+        </div>
+        <div class="bl-dossier-meta">
+          <span class="bl-motivo-badge">${b.reasons.length} motivo${b.reasons.length!==1?'s':''}</span>
+          <div class="bl-actions">
+            <button class="bl-btn" title="Editar cadastro"
+              onclick="openBlocklistEditModal(${JSON.stringify(b).replace(/"/g,'&quot;')})">
+              <i class="ti ti-pencil"></i>
+            </button>
+            <button class="bl-btn danger" title="Remover da Block List"
+              onclick="deleteBlocklistEntry(${b.id},'${b.name.replace(/'/g,"\\'")}')">
+              <i class="ti ti-trash"></i>
+            </button>
+          </div>
+        </div>
       </div>
-      <div class="bl-reasons">
-        ${b.reasons.map(r=>`<span class="bl-reason">${r.reason}</span>`).join('')}
-      </div>
-      <div class="bl-actions">
-        <button class="bl-btn" title="Editar cadastro"
-          onclick="openBlocklistEditModal(${JSON.stringify(b).replace(/"/g,'&quot;')})">
-          <i class="ti ti-pencil"></i>
-        </button>
-        <button class="bl-btn danger" title="Remover da Block List"
-          onclick="deleteBlocklistEntry(${b.id},'${b.name.replace(/'/g,"\\'")}')">
-          <i class="ti ti-trash"></i>
-        </button>
-      </div>
+      ${b.reasons.length?`
+      <div class="bl-dossier-body">
+        <ol class="bl-motivo-list">
+          ${b.reasons.map(r=>`<li class="bl-motivo-item"><span class="bl-motivo-marker"></span>${r.reason}</li>`).join('')}
+        </ol>
+      </div>`:''}
     </div>`).join('');
 }
 
 // ── Export ────────────────────────────────────────────────────
 function exportData(entity, format){
   window.open(`${API}/api/export/${entity}/${format}`, '_blank');
+}
+let _exportFmt = null;
+function openExportModal(fmt){
+  _exportFmt = fmt;
+  document.getElementById('export-modal-title').innerHTML =
+    `<i class="ti ti-download" style="color:var(--blue);margin-right:8px"></i>Exportar ${fmt.toUpperCase()}`;
+  document.getElementById('modal-export').classList.add('open');
+}
+function closeExportModal(){
+  document.getElementById('modal-export').classList.remove('open');
+  _exportFmt = null;
+}
+function doExport(entity){
+  exportData(entity, _exportFmt);
+  closeExportModal();
 }
 
 // ── Regras automáticas: transporte, valor, block list e data ──
@@ -1184,7 +1364,7 @@ function calcValue(hours, transport){
 const NATIONAL_HOLIDAYS = new Set([
   '1-1','4-21','5-1','9-7','10-12','11-2','11-15','12-25',
   '4-18','4-19','3-4','3-5','4-3','4-5',
-].map(s=>s));
+]);
 function isNearHoliday(dateStr){
   if(!dateStr) return false;
   const d = new Date(dateStr+'T00:00:00');

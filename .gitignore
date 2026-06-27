@@ -1,0 +1,24 @@
+# Ambiente Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+
+# Variáveis de ambiente
+.env
+*.env.local
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Arquivos temporários de sessão (Claude Code scratchpad)
+C*scratchpad*
+
+# Referências visuais de desenvolvimento (não são código da aplicação)
+BlockList - Ajustes Visuais (referencia Claude Code).md
+FraudWatch BlockList Final.html
+
+# Docker
+.dockerenv
