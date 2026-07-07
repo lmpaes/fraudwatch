@@ -4,6 +4,14 @@ Sistema de monitoramento de casos suspeitos com score de risco automático, bloc
 
 ---
 
+> **Aviso — Projeto de portfólio**
+>
+> As regras de negócio implementadas neste projeto (critérios de suspeita, score de risco, block list, meios de transporte e fatores de valor) são **fictícias** e foram criadas especificamente para fins de demonstração técnica, inspiradas em conceitos genéricos e públicos do setor de assistência veicular.
+>
+> Todos os nomes, datas de nascimento e dados pessoais exibidos no dashboard são **inteiramente fictícios**, gerados artificialmente para popular o ambiente de demonstração. Nenhuma informação real de clientes, apólices ou sinistros foi utilizada.
+
+---
+
 ## Pré-requisitos
 
 - Docker e Docker Compose
@@ -294,7 +302,7 @@ O score de risco é calculado automaticamente pelo backend no momento da criaç�
 |-------|-------------|--------------------|
 | Block list | 45 pts | Automático — nome do cliente encontrado na block list |
 | Reincidência | 25 pts | Manual — soma dos motivos comportamentais marcados pelo operador (teto: 25 pts) |
-| Transporte | 20 pts | Automático — derivado do tempo de viagem (Aéreo=20, Rodoviário=10, Táxi=0) |
+| Transporte | 20 pts | Automático — derivado do tempo de viagem (Aéreo=20, Marítimo=10, Rodoviário=0) |
 | Data suspeita | 10 pts | Automático — data do acionamento próxima a feriado nacional (±3 dias) |
 
 **Score máximo:** 100 pontos
@@ -321,8 +329,8 @@ Com base no tempo de viagem informado, o sistema define automaticamente o meio d
 
 | Horas de viagem | Transporte | Fórmula do valor |
 |-----------------|------------|------------------|
-| Até 8h | Táxi | horas × 80 km/h × 1,8 |
-| 8h a 15h | Rodoviário | horas × 80 km/h × 0,8 |
+| Até 8h | Rodoviário | horas × 80 km/h × 0,8 |
+| 8h a 15h | Marítimo | horas × 80 km/h × 1,5 |
 | Acima de 15h | Aéreo | horas × 80 km/h × 2,0 |
 
 Exemplo: viagem de 16h → Aéreo → 16 × 80 × 2,0 = **R$ 2.560,00**

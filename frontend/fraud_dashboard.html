@@ -254,8 +254,8 @@ button{cursor:pointer;font-family:var(--font-body)}
   border-radius:5px;text-transform:uppercase;letter-spacing:.05em;
   white-space:nowrap;
 }
-.t-taxi{background:#2979FF18;color:#5B9BFF;border:1px solid #2979FF33}
-.t-road{background:#F5A62318;color:#F5C55A;border:1px solid #F5A62333}
+.t-road{background:#2979FF18;color:#5B9BFF;border:1px solid #2979FF33}
+.t-maritime{background:#F5A62318;color:#F5C55A;border:1px solid #F5A62333}
 .t-air{background:#FF4C4C18;color:#FF7777;border:1px solid #FF4C4C33}
 .s-open{background:#2979FF18;color:#5B9BFF;border:1px solid #2979FF33}
 .s-denied{background:#FF4C4C18;color:#FF7777;border:1px solid #FF4C4C33}
@@ -531,7 +531,7 @@ button{cursor:pointer;font-family:var(--font-body)}
       <div class="filters-row">
         <div class="section-head">
           <div class="section-title">Painel de Casos Suspeitos</div>
-          <div class="section-sub">Monitoramento de acionamentos com tratativa especial · sinistros ≥ 400 km da residência</div>
+          <div class="section-sub">Monitoramento de acionamentos com tratativa especial · sinistros de longa distância da residência</div>
         </div>
         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
           <div class="filter-tabs">
@@ -729,14 +729,14 @@ button{cursor:pointer;font-family:var(--font-body)}
           <label class="form-label">Transporte <span style="text-transform:none;letter-spacing:0;font-weight:400">(automático)</span></label>
           <input class="form-input" id="f-transport-display" type="text" readonly style="opacity:.75;cursor:not-allowed">
           <div style="font-size:11px;color:var(--muted)">
-            Definido pelo tempo de viagem: ≤8h Táxi · 8–15h Rodoviário · ≥15h Aéreo.
+            Definido pelo tempo de viagem: ≤8h Rodoviário · 8–15h Marítimo · ≥15h Aéreo.
           </div>
         </div>
         <div class="form-group">
           <label class="form-label">Valor envolvido <span style="text-transform:none;letter-spacing:0;font-weight:400">(automático)</span></label>
           <input class="form-input" id="f-value-display" type="text" readonly style="opacity:.75;cursor:not-allowed">
           <div style="font-size:11px;color:var(--muted)">
-            horas × 80km/h × fator do transporte (Táxi 1,8 · Rodoviário 0,8 · Aéreo 2,0)
+            horas × 80km/h × fator do transporte (Rodoviário 0,8 · Marítimo 1,5 · Aéreo 2,0)
           </div>
         </div>
         <div class="form-group">
@@ -896,8 +896,8 @@ function suspicionSummary(suspicion){
 }
 function scoreColor(s){ return s>=56?'#FF4C4C':s>=26?'#F5A623':'#00E676'; }
 function scoreLabel(s){ return s>=56?'ALTO':s>=26?'MÉDIO':'BAIXO'; }
-function transportLabel(t){ return t==='taxi'?'Táxi':t==='road'?'Rodoviário':'Aéreo'; }
-function transportClass(t){ return t==='taxi'?'t-taxi':t==='road'?'t-road':'t-air'; }
+function transportLabel(t){ return t==='road'?'Rodoviário':t==='maritime'?'Marítimo':'Aéreo'; }
+function transportClass(t){ return t==='road'?'t-road':t==='maritime'?'t-maritime':'t-air'; }
 function statusLabel(s){ return s==='open'?'Em andamento':s==='denied'?'Negado':'Liberado'; }
 function statusClass(s){ return s==='open'?'s-open':s==='denied'?'s-denied':'s-released'; }
 
@@ -1046,16 +1046,16 @@ async function loadCharts(){
   const {transport, risk, avg_value, timeline} = d;
 
   document.getElementById('leg-transport').innerHTML = [
-    ['#2979FF','Táxi',transport.taxi],
-    ['#F5A623','Rodoviário',transport.road],
+    ['#2979FF','Rodoviário',transport.road],
+    ['#F5A623','Marítimo',transport.maritime],
     ['#FF4C4C','Aéreo',transport.air],
   ].map(([c,l,n])=>`<div class="leg-item leg-item-spread"><span class="leg-item-name"><span class="leg-dot" style="background:${c}"></span>${l}</span><span class="leg-item-val">${n}</span></div>`).join('');
 
   destroyChart('transport');
   charts['transport'] = new Chart(document.getElementById('chartTransport'),{
     type:'doughnut',
-    data:{labels:['Táxi','Rodoviário','Aéreo'],datasets:[{
-      data:[transport.taxi,transport.road,transport.air],
+    data:{labels:['Rodoviário','Marítimo','Aéreo'],datasets:[{
+      data:[transport.road,transport.maritime,transport.air],
       backgroundColor:['#2979FF','#F5A623','#FF4C4C'],
       borderColor:'#1A1D27',borderWidth:3,hoverOffset:8,
     }]},
@@ -1100,8 +1100,8 @@ async function loadCharts(){
   destroyChart('value');
   charts['value'] = new Chart(document.getElementById('chartValue'),{
     type:'bar',
-    data:{labels:['Táxi','Rodoviário','Aéreo'],datasets:[{
-      data:[Math.round(avg_value.taxi),Math.round(avg_value.road),Math.round(avg_value.air)],
+    data:{labels:['Rodoviário','Marítimo','Aéreo'],datasets:[{
+      data:[Math.round(avg_value.road),Math.round(avg_value.maritime),Math.round(avg_value.air)],
       backgroundColor:['#2979FF28','#F5A62328','#FF4C4C28'],
       borderColor:['#2979FF','#F5A623','#FF4C4C'],
       borderWidth:2,borderRadius:7,
@@ -1351,11 +1351,11 @@ function doExport(entity){
 let blocklistNamesCache = null;
 
 function suggestTransport(hours){
-  if(hours <= 8) return 'taxi';
+  if(hours <= 8) return 'road';
   if(hours >= 15) return 'air';
-  return 'road';
+  return 'maritime';
 }
-const TRANSPORT_VALUE_FACTOR = {taxi:1.8, road:0.8, air:2.0};
+const TRANSPORT_VALUE_FACTOR = {road:0.8, maritime:1.5, air:2.0};
 function calcValue(hours, transport){
   const factor = TRANSPORT_VALUE_FACTOR[transport] || 0;
   return hours * 80 * factor;
@@ -1404,7 +1404,7 @@ function onFormChange(){
 
   const inBlocklist = isInBlocklist(name);
   const blocklistPts = inBlocklist ? 45 : 0;
-  const transportPts = transport ? ({air:20, road:10, taxi:0}[transport]||0) : 0;
+  const transportPts = transport ? ({air:20, maritime:10, road:0}[transport]||0) : 0;
   const dataPts = isNearHoliday(dateStr) ? 10 : 0;
   let reincPts = 0;
   document.querySelectorAll('.f-risk-factor:checked').forEach(cb=>{ reincPts += parseInt(cb.dataset.pontos)||0; });

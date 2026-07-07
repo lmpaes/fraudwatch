@@ -9,8 +9,8 @@ from database import Base
 
 
 class TransportEnum(str, enum.Enum):
-    taxi = "taxi"
     road = "road"
+    maritime = "maritime"
     air = "air"
 
 

@@ -44,7 +44,7 @@ BLOCKLIST_SEED = [
     {
         "name": "Márcio Vieira Braga", "dob": date(1968, 4, 30),
         "reasons": [
-            "5 acionamentos em 12 meses — todos acima de 400km",
+            "5 acionamentos em 12 meses — todos de longa distância da residência",
             "Passagens aéreas para destinos distintos da residência",
         ],
     },
@@ -138,15 +138,15 @@ CLIENT_NAME_POOL = [
 ]
 
 # ── Helpers de transporte e valor ─────────────────────────────
-TRANSPORT_VALUE_FACTOR = {"taxi": 1.8, "road": 0.8, "air": 2.0}
-TRANSPORT_LABELS      = {"taxi": "Táxi", "road": "Rodoviário", "air": "Aéreo"}
+TRANSPORT_VALUE_FACTOR = {"road": 0.8, "maritime": 1.5, "air": 2.0}
+TRANSPORT_LABELS      = {"road": "Rodoviário", "maritime": "Marítimo", "air": "Aéreo"}
 
 def _suggest_transport(hours: float) -> str:
     if hours <= 8:
-        return "taxi"
+        return "road"
     if hours >= 15:
         return "air"
-    return "road"
+    return "maritime"
 
 def _calc_value(hours: float, transport: str) -> float:
     return round(hours * 80 * TRANSPORT_VALUE_FACTOR[transport], 2)
@@ -169,18 +169,18 @@ _JUSTIFS = {
         "Acionamento aéreo em período de alta temporada com histórico de reincidência. "
         "Padrão de uso suspeito identificado pelo sistema.",
     ],
-    "road_reinc": [
-        "Múltiplos acionamentos rodoviários em rotas distintas. Padrão consistente "
+    "maritime_reinc": [
+        "Múltiplos acionamentos marítimos em rotas distintas. Padrão consistente "
         "com uso indevido do benefício. Em análise.",
-        "Segundo acionamento rodoviário no trimestre com distância acima de 400km. "
+        "Segundo acionamento marítimo no trimestre com origem distante da residência. "
         "Score elevado por reincidência identificada.",
-        "Acionamento rodoviário com carga atípica relatada pelo operador. "
+        "Acionamento marítimo com destino incompatível com o sinistro declarado. "
         "Documentação em revisão para validação.",
     ],
-    "taxi_reinc": [
-        "Terceiro acionamento de táxi no bimestre. Frequência suspeita detectada "
+    "road_reinc": [
+        "Terceiro acionamento rodoviário no bimestre. Frequência suspeita detectada "
         "pelo sistema de monitoramento. Análise em andamento.",
-        "Acionamento de táxi com histórico de reincidência. Valor dentro do esperado, "
+        "Acionamento rodoviário com histórico de reincidência. Valor dentro do esperado, "
         "porém padrão de uso monitorado.",
     ],
     "holiday": [
@@ -216,10 +216,10 @@ def _pick_justification(is_bl: bool, transport: str, near_hol: bool, reinc_pts: 
         return random.choice(_JUSTIFS["blocklist"])
     if transport == "air" and reinc_pts >= 10:
         return random.choice(_JUSTIFS["air_reinc"])
+    if transport == "maritime" and reinc_pts >= 10:
+        return random.choice(_JUSTIFS["maritime_reinc"])
     if transport == "road" and reinc_pts >= 10:
         return random.choice(_JUSTIFS["road_reinc"])
-    if transport == "taxi" and reinc_pts >= 10:
-        return random.choice(_JUSTIFS["taxi_reinc"])
     if near_hol:
         return random.choice(_JUSTIFS["holiday"])
     if transport == "air":
@@ -232,7 +232,7 @@ def _build_suspicion(is_bl: bool, reinc_pts: int, transport: str, near_hol: bool
         parts.append(("Cliente consta na block list", 45))
     if reinc_pts > 0:
         parts.append(("Indícios de reincidência identificados", reinc_pts))
-    tr_pts = {"air": 20, "road": 10, "taxi": 0}.get(transport, 0)
+    tr_pts = {"air": 20, "maritime": 10, "road": 0}.get(transport, 0)
     if tr_pts > 0:
         parts.append((f"Transporte {TRANSPORT_LABELS[transport]} (fator de risco)", tr_pts))
     if near_hol:
@@ -387,7 +387,7 @@ def seed():
                 reinc_pts = random.choices([0, 10, 15, 25], weights=[0.40, 0.25, 0.22, 0.13])[0]
 
             # Garantia: pelo menos um fator de risco deve existir
-            tr_pts = {"air": 20, "road": 10, "taxi": 0}[transport]
+            tr_pts = {"air": 20, "maritime": 10, "road": 0}[transport]
             if not is_bl and reinc_pts == 0 and tr_pts == 0 and not near_hol:
                 reinc_pts = 10
 
@@ -405,8 +405,8 @@ def seed():
             for _ in range(hist_count):
                 days_back = random.randint(45, 400)
                 h_date      = case_date - timedelta(days=days_back)
-                h_transport = random.choice(["Táxi", "Rodoviário", "Aéreo"])
-                h_factor    = {"Táxi": 1.8, "Rodoviário": 0.8, "Aéreo": 2.0}[h_transport]
+                h_transport = random.choice(["Rodoviário", "Marítimo", "Aéreo"])
+                h_factor    = {"Rodoviário": 0.8, "Marítimo": 1.5, "Aéreo": 2.0}[h_transport]
                 h_hours     = random.choice(hour_options)
                 h_value     = int(round(h_hours * 80 * h_factor))
                 h_value_str = f"R$ {h_value:,}".replace(",", ".")

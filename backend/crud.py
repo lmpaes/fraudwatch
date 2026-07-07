@@ -194,15 +194,15 @@ def get_kpis(db: Session, filter: str = "all") -> dict:
 def get_charts(db: Session, filter: str = "all") -> dict:
     cases = get_cases(db, filter)
 
-    taxi = sum(1 for c in cases if c.transport.value == "taxi")
     road = sum(1 for c in cases if c.transport.value == "road")
+    maritime = sum(1 for c in cases if c.transport.value == "maritime")
     air = sum(1 for c in cases if c.transport.value == "air")
 
     low = sum(1 for c in cases if c.score <= 25)
     medium = sum(1 for c in cases if 26 <= c.score <= 55)
     high = sum(1 for c in cases if c.score >= 56)
 
-    def avg(t):
+    def avg(t: str) -> float:
         vals = [float(c.value) for c in cases if c.transport.value == t]
         return round(sum(vals) / len(vals), 2) if vals else 0.0
 
@@ -254,8 +254,8 @@ def get_charts(db: Session, filter: str = "all") -> dict:
             bucket += timedelta(days=7)
 
     return {
-        "transport": {"taxi": taxi, "road": road, "air": air},
+        "transport": {"road": road, "maritime": maritime, "air": air},
         "risk": {"low": low, "medium": medium, "high": high},
-        "avg_value": {"taxi": avg("taxi"), "road": avg("road"), "air": avg("air")},
+        "avg_value": {"road": avg("road"), "maritime": avg("maritime"), "air": avg("air")},
         "timeline": timeline,
     }

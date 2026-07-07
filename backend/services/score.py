@@ -49,7 +49,7 @@ def calculate_score(
 ) -> tuple[int, dict]:
     bl_pts = 45 if is_blocklist else min(int(factors_input.blocklist), 45)
     re_pts = min(int(factors_input.reincidencia), 25)
-    tr_pts = {"air": 20, "road": 10, "taxi": 0}.get(transport, 0)
+    tr_pts = {"air": 20, "maritime": 10, "road": 0}.get(transport, 0)
     dt_pts = 10 if _is_near_holiday(case_date) else min(int(factors_input.data), 10)
 
     score = min(bl_pts + re_pts + tr_pts + dt_pts, 100)

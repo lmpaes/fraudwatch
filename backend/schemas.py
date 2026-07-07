@@ -163,8 +163,8 @@ class KPIOut(BaseModel):
 
 
 class TransportDistOut(BaseModel):
-    taxi: int
     road: int
+    maritime: int
     air: int
 
 
@@ -175,8 +175,8 @@ class RiskDistOut(BaseModel):
 
 
 class AvgValueOut(BaseModel):
-    taxi: float
     road: float
+    maritime: float
     air: float
 
 
