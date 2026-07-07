@@ -22,3 +22,9 @@ FraudWatch BlockList Final.html
 
 # Docker
 .dockerenv
+
+# Relatórios gerados localmente (análise, portfólio, LinkedIn)
+[Rr]elatorio*.txt
+
+# Playwright MCP (automação de browser — sessão local)
+.playwright-mcp/
