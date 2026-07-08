@@ -319,9 +319,9 @@ O operador seleciona os comportamentos observados; cada seleção incrementa o f
 
 | Comportamento observado | Pontos |
 |-------------------------|--------|
-| Comportamento suspeito (pane proposital para acionar o benefício) | +15 |
-| Mudança gratuita (guincho utilizado para transportar objetos/bagagens) | +10 |
-| Exigências aérea (aciona o serviço para conseguir passagem aérea) | +10 |
+| Sinistros pouco críveis (pane proposital para acionar o benefício) | +15 |
+| Uso indevido do benefício (guincho utilizado para transportar objetos/bagagens) | +10 |
+| Solicitação fora do padrão (aciona o serviço para conseguir passagem aérea) | +10 |
 
 ### Definição automática do transporte e valor
 
