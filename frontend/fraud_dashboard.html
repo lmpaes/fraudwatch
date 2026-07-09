@@ -847,7 +847,9 @@ button{cursor:pointer;font-family:var(--font-body)}
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
-const API = 'http://localhost:8000';
+const API = ['localhost', '127.0.0.1'].includes(window.location.hostname)
+  ? 'http://localhost:8000'
+  : 'https://fraudwatch-ad1k.onrender.com';
 let currentFilter = 'all';
 let selectedId = null;
 let editingCaseId = null;
